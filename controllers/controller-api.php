@@ -104,92 +104,64 @@
                     } elseif(filter_var($email, FILTER_VALIDATE_EMAIL)) {
                         $label = 'L\'adresse email ';
                     } else {
-                        $label = 'Le matricule ';
+                        $label = 'Le matricule ou nom d\'utilisateur ';
                     }
+                    // Log decanat
+                    $result1 = $API->log_decanant($email);
+                    // Log enseignant
+                    $result2 = $API->log_enseignant($email);
+                    // Log etudiant
+                    $result3 = $API->log_etudiants($email);
+                    if(! empty($result1)) {
+                        foreach($result1 as $data) {
+                            if($data->password == md5($password)) {
+                                $_SESSION['departement']['code'] = $data->identifiant;
+                                $_SESSION['departement']['username'] = $data->username;
+                                $_SESSION['departement']['email'] = $data->email;
 
-                    // Check if the user has filled in the required fields.
-                    if(! empty($email) && ! empty($password)) {
-                        $result = $API->log_users($email);
-                        $result2 = $API->log_etudiants($email);
-                        $expiration = time() + (30 * 24 * 60 * 60); // 30 jours pour que le setcookie expire
-
-                        // Authenticate users (supervisors).
-                        if(! empty($result)) {
-                            foreach($result as $row) {
-                                if($row->mot_de_passe == $password) {
-                                    $last_year = $API->get_last_year();
-                                    $sub_role = '';
-                                    if($API->get_admin($row->id, $last_year)) {
-                                        $_SESSION['user']['sub_role'] = 'Directeur';
-                                        $sub_role = 'Directeur';
-                                    } else {
-                                        $_SESSION['user']['sub_role'] = 'encadreur';
-                                        $sub_role = 'encadreur';
-                                    }
-
-                                    $_SESSION['user']['id'] = $row->id;
-                                    $_SESSION['user']['role'] = 'encadreur';
-                                    $_SESSION['user']['name'] = $row->nom . ' ' . $row->prenom;
-                                    $_SESSION['user']['path'] = $row->image;
-
-                                    if($remember) {
-                                        setcookie('sub_role', $sub_role, $expiration, "/");
-                                        setcookie('user_id', $row->id, $expiration, "/");
-                                        setcookie('user_role', 'encadreur', $expiration, "/");
-                                        setcookie('user_name', $row->nom . ' ' . $row->prenom, $expiration, "/");
-                                        setcookie('user_path', $row->image, $expiration, "/");
-                                    } else {
-                                        setcookie("sub_role", "", time() - 3600, "/");
-                                        setcookie("user_id", "", time() - 3600, "/");
-                                        setcookie("user_role", "", time() - 3600, "/");
-                                        setcookie("user_name", "", time() - 3600, "/");
-                                        setcookie("user_path", "", time() - 3600, "/");
-                                    }
-
-                                    $response['status'] = 'success';
-                                    $response['content'] = 'Connexion reussie';
-
-                                } else {
-                                    $response['status'] = 'error';
-                                    $response['content'] = 'Le mot de passe que vous avez tapé est incorrect, veuillez réessayer.';
-                                }
+                                $response['status'] = 'success';
+                                $response['content'] = 'Connexion reussie';
+                            } else {
+                                $response['status'] = 'error';
+                                $response['content'] = 'Le mot de passe que vous avez tapé est incorrect, veuillez réessayer.';
                             }
-                            // Authenticate student.
-                        } elseif(! empty($result2)) {
-                            foreach($result2 as $row) {
-                                if($row->mot_de_passe == $password) {
-                                    $_SESSION['user']['id'] = $row->id;
-                                    $_SESSION['user']['role'] = 'etudiant';
-                                    $_SESSION['user']['name'] = $row->nom . ' ' . $row->prenom;
-                                    $_SESSION['user']['path'] = $row->image;
+                        }
+                    } elseif(! empty($result2)) {
+                        foreach($result2 as $data) {
+                            if($data->pwd == md5($password)) {
+                                $_SESSION['user']['role'] = 'encadreur';
+                                $_SESSION['user']['sub_role'] = 'encadreur';
+                                $_SESSION['user']['id'] = $data->Matriculenseig;
+                                $_SESSION['user']['name'] = $data->Nom . ' ' . $data->PostNom . ' ' . $data->Prenom;
+                                $_SESSION['user']['path'] = $data->photo;
 
-                                    if($remember) {
-                                        setcookie('user_id', $row->id, $expiration, "/");
-                                        setcookie('user_role', 'etudiant', $expiration, "/");
-                                        setcookie('user_name', $row->nom . ' ' . $row->prenom, $expiration, "/");
-                                        setcookie('user_path', $row->image,$expiration, "/");
-                                    } else {
-                                        setcookie("user_id", "", time() - 3600, "/");
-                                        setcookie("user_role", "", time() - 3600, "/");
-                                        setcookie("user_name", "", time() - 3600, "/");
-                                        setcookie("user_path", "", time() - 3600, "/");
-                                    }
-
-                                    $response['status'] = 'success';
-                                    $response['content'] = 'Connexion reussie';
-                                } else {
-                                    $response['status'] = 'error';
-                                    $response['content'] = 'Le mot de passe que vous avez tapé est incorrect, veuillez réessayer.';
-                                }
+                                $response['status'] = 'success';
+                                $response['content'] = 'Connexion reussie';
+                            } else {
+                                $response['status'] = 'error';
+                                $response['content'] = 'Le mot de passe que vous avez tapé est incorrect, veuillez réessayer.';
                             }
-                        } else {
-                            $response['status'] = 'error';
-                            $response['content'] = $label . ' que vous avez entré est incorrect, veuillez réessayer';
+                        }
+                    } elseif(! empty($result3)) {
+                        foreach($result3 as $data) {
+                            if($data->mot_de_passe == md5($password)) {
+                                $_SESSION['user']['id'] = $data->id;
+                                $_SESSION['user']['role'] = 'etudiant';
+                                $_SESSION['user']['name'] = $data->nom . ' ' . $data->prenom;
+                                $_SESSION['user']['path'] = $data->image;
+
+                                $response['status'] = 'success';
+                                $response['content'] = 'Connexion reussie';
+                            } else {
+                                $response['status'] = 'error';
+                                $response['content'] = 'Le mot de passe que vous avez tapé est incorrect, veuillez réessayer.';
+                            }
                         }
                     } else {
-                        $response['status'] = 'info';
-                        $response['content'] = 'Veuillez compléter les champs marqués par <b class="star">*</b>';
+                        $response['status'] = 'error';
+                        $response['content'] = $label . ' que vous avez entré est incorrect, veuillez réessayer';
                     }
+
                 }
                 catch (Exception $ex) {
                     // In case of an exception, return a warning message with the exception message.

@@ -188,20 +188,78 @@
             return $result;
         }
 
-
-        // Log all users
-        public function log_users($email) {
+        public function log_decanant($email) {
             $query = 'SELECT *
             FROM
-                encadreur
+                decanatlogin
             WHERE
-                (telephone = ? OR email = ?) AND
-                status = ?';
+                (username = ? OR email = ?)';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $email,
                 $email,
-                $this->status
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        // Log all enseignant
+        public function log_enseignant($email) {
+            $query = 'SELECT *
+            FROM
+                enseignant
+            WHERE
+                (username = ? OR email = ? OR Matriculenseig = ?)';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $email,
+                $email,
+                $email
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        // Log etudiant
+        public function log_etudiants($email) {
+            $query = 'SELECT
+                inscription.idinscription AS id,
+                inscription.Dateinscription AS date,
+                inscription.matriculeinscrit AS etudiant,
+                inscription.CodPro AS promotion,
+                YEAR(inscription.Dateinscription) AS annee,
+                etudiant.MatriculeInscrit AS matricule,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Sexe AS genre,
+                etudiant.Datenaissance AS date_naissance,
+                etudiant.Adresse AS adresse,
+                etudiant.photo AS image,
+                etudiant.Tel AS telephone,
+                etudiant.Email AS email,
+                etudiant.password AS mot_de_passe
+            FROM
+                etudiant, inscription
+            WHERE
+                etudiant.MatriculeInscrit = inscription.matriculeinscrit AND
+                (etudiant.MatriculeInscrit = ? OR etudiant.Email = ?)
+            ORDER BY
+                inscription.idinscription DESC
+            LIMIT
+                1';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $email,
+                $email
             ]);
 
             $result = [];
@@ -261,51 +319,7 @@
             return $result;
         }
 
-        public function log_etudiants($email) {
-            $query = 'SELECT
-                inscription.id AS id,
-                inscription.dates AS date,
-                inscription.description AS description,
-                inscription.etudiant AS etudiant,
-                inscription.promotion AS promotion,
-                inscription.annee AS annee,
-                inscription.status AS status,
-                etudiant.id AS id_etudiant,
-                etudiant.matricule AS matricule,
-                etudiant.nom AS nom,
-                etudiant.postnom AS postnom,
-                etudiant.prenom AS prenom,
-                etudiant.genre AS genre,
-                etudiant.date_naissance AS date_naissance,
-                etudiant.adresse AS adresse,
-                etudiant.image AS image,
-                etudiant.telephone AS telephone,
-                etudiant.email AS email,
-                etudiant.mot_de_passe AS mot_de_passe,
-                etudiant.status AS status_etudiant
-            FROM
-                etudiant, inscription
-            WHERE
-                etudiant.id = inscription.etudiant AND
-                (etudiant.telephone = ? OR etudiant.email = ?) AND
-                etudiant.status = ?
-            ORDER BY
-                inscription.id DESC
-            LIMIT
-                1';
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $email,
-                $email,
-                $this->status
-            ]);
 
-            $result = [];
-            while($row = $stmt->fetch()) {
-                $result[] = $row;
-            }
-            return $result;
-        }
 
         // Get last annee academique
         public function get_last_year() {
@@ -357,21 +371,6 @@
                 $this->status,
                 $encadreur,
                 $annee
-            ]);
-
-            $result = [];
-            while($row = $stmt->fetch()) {
-                $result[] = $row;
-            }
-            return $result;
-        }
-
-        public function get_send_email_encadreur($projet){
-            $query = "SELECT encadreur.nom, encadreur.postnom, encadreur.prenom, encadreur.email FROM encadreur, projet_encadreur WHERE encadreur.id=projet_encadreur.encadreur AND projet_encadreur.projet = ?  AND projet_encadreur.status = ?";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $projet,
-                $this->status
             ]);
 
             $result = [];
