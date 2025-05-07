@@ -3,11 +3,13 @@
     require_once 'app/module/functions/functions.php';
     ob_start();
     session_start();
-    $role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
-    if(empty($_SESSION['user']['id']) OR ! isset($_SESSION['user']['id'])) {
-        header('location:./login');
-        exit;
-    }
+
+    $parts = explode("-", $_GET['url']);
+
+        // Récupération des deux derniers éléments
+        $annee = ! empty($parts[1]) ? $parts[1] : ''; // 1
+        $promotion = ! empty($parts[2]) ? $parts[2] : ''; // 1
+
 ?>
 
 <title><?=$page_title ?></title>
@@ -24,18 +26,45 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" id="container">
-                    <div class="col-12 justify-content-center d-flex align-items-center" style="min-height: 70vh;">
-                        <h4>Chargement encours...</h4>
-                    </div>
-                </div>
+
+                <?php
+                    if(! empty($annee) && ! empty($promotion)) {
+                        ?>
+                            <div class="row" id="container">
+                                <div class="col-12 justify-content-center d-flex align-items-center" style="min-height: 70vh;">
+                                    <h4>Chargement encours...</h4>
+                                </div>
+                            </div>
+                        <?php
+                    } else {
+                        ?>
+                            <div class="container card p-4">
+                                <div class="my-3">
+                                    <label for="">Sélectionnez une annee academique</label>
+                                    <select id="annee" class="form-select mt-2">
+                                        <option value="" selected disabled>Chargement encours...</option>
+                                    </select>
+                                </div>
+                                <div class="my-3">
+                                    <label for="">Sélectionnez une promotion</label>
+                                    <select id="promotion" class="form-select mt-2">
+                                        <option value="" selected disabled>Chargement encours...</option>
+                                    </select>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-primary" id="next">Suivant</button>
+                                </div>
+                            </div>
+                        <?php
+                    }
+                ?>
             </div>
         </div>
     </div>
 </div>
 
 <?php
-    if($role != 'etudiant') {
+    if($role != 'etudiant' && ! empty($annee) && ! empty($promotion)) {
         ?><a data-bs-toggle="modal" data-bs-target="#exampleModalToggle" class="floating-btn text-white">+</a><?php
     }
 ?>
@@ -56,6 +85,7 @@
             <label for="">Description</label>
             <textarea id="description" class="form-control mt-2" placeholder="Entrez la description du projet"></textarea>
         </div>
+
         <div class="my-3">
             <label for="">Sélectionnez un étudiant</label>
             <select id="etudiant" class="form-select mt-2">

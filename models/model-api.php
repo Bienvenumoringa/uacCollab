@@ -10,16 +10,13 @@
         // Get annee academique from database
         public  function get_annee() {
             $query = 'SELECT
-                annee.id AS id,
-                annee.description AS description
+                DISTINCT
+                inscription.AnneeAcad AS AnneeAcad
             FROM
-                annee
-            WHERE
-                status = ?';
+                inscription
+            ';
             $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $this->status
-            ]);
+            $stmt->execute();
 
             $result = [];
             while($row = $stmt->fetch()) {
@@ -29,20 +26,18 @@
         }
 
         // Get promotion from database
-        public  function get_promotion() {
+        public  function get_promotion($CodDep) {
             $query = 'SELECT
-                promotion.id AS id,
-                promotion.description AS description,
-                departement.description AS description_departement
+                promotion.CodPro AS id,
+                promotion.Codfil AS Codfil,
+                promotion.NomPro AS nom,
+                departement.NomDep AS NomDep
             FROM
-                promotion, departement
+                promotion, departement, filiere
             WHERE
-                departement.id = promotion.departement AND
-                promotion.status = ?';
+                departement.CodDep = filiere.CodDep AND  filiere.Codfil = promotion.Codfil AND departement.CodDep = ?';
             $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $this->status
-            ]);
+            $stmt->execute([$CodDep]);
 
             $result = [];
             while($row = $stmt->fetch()) {
@@ -51,23 +46,23 @@
             return $result;
         }
 
-        // Get encadreur from database
-        public  function get_encadreur() {
+        // Get enseigant from database
+        public  function get_enseigant($CodDep) {
             $query = 'SELECT
-                encadreur.id AS id,
-                encadreur.nom AS nom,
-                encadreur.postnom AS postnom,
-                encadreur.prenom AS prenom,
-                encadreur.telephone AS telephone,
-                encadreur.adresse AS adresse,
-                encadreur.email AS email
+                enseignant.Matriculenseig AS id,
+                enseignant.Nom AS nom,
+                enseignant.PostNom AS postnom,
+                enseignant.Prenom AS prenom,
+                enseignant.Tel AS telephone,
+                enseignant.email AS email
             FROM
-                encadreur
+                enseignant
             WHERE
-                encadreur.status = ?';
+                enseignant.CodDep = ?
+            ';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
-                $this->status
+                $CodDep
             ]);
 
             $result = [];
@@ -106,23 +101,20 @@
         // Get etudiant from database
         public  function get_etudiant($an, $prom) {
             $query = 'SELECT
-                etudiant.id AS id,
-                etudiant.nom AS nom,
-                etudiant.postnom AS postnom,
-                etudiant.prenom AS prenom,
-                etudiant.telephone AS telephone,
-                etudiant.adresse AS adresse,
-                etudiant.email AS email
+                etudiant.MatriculeInscrit AS id,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Tel AS telephone,
+                etudiant.Email AS email
             FROM
                 etudiant, inscription
             WHERE
-                inscription.etudiant = etudiant.id AND
-                etudiant.status = ? AND
-                inscription.annee = ? AND
-                inscription.promotion = ?';
+                inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
+                inscription.AnneeAcad = ? AND
+                inscription.CodPro = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
-                $this->status,
                 $an,
                 $prom
             ]);
@@ -137,18 +129,17 @@
         // Get etudiant by id
         public  function get_etudiant_id($id) {
             $query = 'SELECT
-                etudiant.id AS id,
-                etudiant.nom AS nom,
-                etudiant.postnom AS postnom,
-                etudiant.prenom AS prenom,
-                etudiant.telephone AS telephone,
-                etudiant.adresse AS adresse,
-                etudiant.email AS email
+                etudiant.MatriculeInscrit AS id,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Tel AS telephone,
+                etudiant.Email AS email
             FROM
                 etudiant, inscription
             WHERE
-                inscription.etudiant = etudiant.id AND
-                inscription.id = ?';
+                inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
+                inscription.MatriculeInscrit = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id,
@@ -164,18 +155,17 @@
         // Get etudiant by id
         public  function get_etudiant_email($id) {
             $query = 'SELECT
-                etudiant.id AS id,
-                etudiant.nom AS nom,
-                etudiant.postnom AS postnom,
-                etudiant.prenom AS prenom,
-                etudiant.telephone AS telephone,
-                etudiant.adresse AS adresse,
-                etudiant.email AS email
+                etudiant.MatriculeInscrit AS id,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Tel AS telephone,
+                etudiant.Email AS email
             FROM
                 etudiant, inscription
             WHERE
-                inscription.etudiant = etudiant.id AND
-                inscription.id = ?';
+                inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
+                inscription.MatriculeInscrit = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id,
@@ -188,20 +178,78 @@
             return $result;
         }
 
-
-        // Log all users
-        public function log_users($email) {
+        public function log_decanant($email) {
             $query = 'SELECT *
             FROM
-                encadreur
+                decanatlogin
             WHERE
-                (telephone = ? OR email = ?) AND
-                status = ?';
+                (username = ? OR email = ?)';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $email,
                 $email,
-                $this->status
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        // Log all enseignant
+        public function log_enseignant($email) {
+            $query = 'SELECT *
+            FROM
+                enseignant
+            WHERE
+                (username = ? OR email = ? OR Matriculenseig = ?)';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $email,
+                $email,
+                $email
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        // Log etudiant
+        public function log_etudiants($email) {
+            $query = 'SELECT
+                inscription.idinscription AS id,
+                inscription.Dateinscription AS date,
+                inscription.matriculeinscrit AS etudiant,
+                inscription.CodPro AS promotion,
+                inscription.AnneeAcad AS annee,
+                etudiant.MatriculeInscrit AS matricule,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Sexe AS genre,
+                etudiant.Datenaissance AS date_naissance,
+                etudiant.Adresse AS adresse,
+                etudiant.photo AS image,
+                etudiant.Tel AS telephone,
+                etudiant.Email AS email,
+                etudiant.password AS mot_de_passe
+            FROM
+                etudiant, inscription
+            WHERE
+                etudiant.MatriculeInscrit = inscription.matriculeinscrit AND
+                (etudiant.MatriculeInscrit = ? OR etudiant.Email = ?)
+            ORDER BY
+                inscription.idinscription DESC
+            LIMIT
+                1';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $email,
+                $email
             ]);
 
             $result = [];
@@ -261,75 +309,31 @@
             return $result;
         }
 
-        public function log_etudiants($email) {
-            $query = 'SELECT
-                inscription.id AS id,
-                inscription.dates AS date,
-                inscription.description AS description,
-                inscription.etudiant AS etudiant,
-                inscription.promotion AS promotion,
-                inscription.annee AS annee,
-                inscription.status AS status,
-                etudiant.id AS id_etudiant,
-                etudiant.matricule AS matricule,
-                etudiant.nom AS nom,
-                etudiant.postnom AS postnom,
-                etudiant.prenom AS prenom,
-                etudiant.genre AS genre,
-                etudiant.date_naissance AS date_naissance,
-                etudiant.adresse AS adresse,
-                etudiant.image AS image,
-                etudiant.telephone AS telephone,
-                etudiant.email AS email,
-                etudiant.mot_de_passe AS mot_de_passe,
-                etudiant.status AS status_etudiant
-            FROM
-                etudiant, inscription
-            WHERE
-                etudiant.id = inscription.etudiant AND
-                (etudiant.telephone = ? OR etudiant.email = ?) AND
-                etudiant.status = ?
-            ORDER BY
-                inscription.id DESC
-            LIMIT
-                1';
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $email,
-                $email,
-                $this->status
-            ]);
 
-            $result = [];
-            while($row = $stmt->fetch()) {
-                $result[] = $row;
-            }
-            return $result;
-        }
 
         // Get last annee academique
-        public function get_last_year() {
-            $query = 'SELECT annee.id as id
-            FROM
-                annee, affectation
-            WHERE
-                affectation.annee = annee.id  AND
-                affectation.status = ?
-            ORDER BY
-                affectation.id DESC
-            LIMIT
-                1';
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                $this->status
-            ]);
+        // public function get_last_year() {
+        //     $query = 'SELECT annee.id as id
+        //     FROM
+        //         annee, affectation
+        //     WHERE
+        //         affectation.annee = annee.id  AND
+        //         affectation.status = ?
+        //     ORDER BY
+        //         affectation.id DESC
+        //     LIMIT
+        //         1';
+        //     $stmt = $this->db->prepare($query);
+        //     $stmt->execute([
+        //         $this->status
+        //     ]);
 
-            $result = 0;
-            while($row = $stmt->fetch()) {
-                $result = $row->id;
-            }
-            return $result;
-        }
+        //     $result = 0;
+        //     while($row = $stmt->fetch()) {
+        //         $result = $row->id;
+        //     }
+        //     return $result;
+        // }
 
         // Get the students affected for a project associated with a supervisor and an academic year.
         public  function get_etudiant_by_year($encadreur, $annee) {

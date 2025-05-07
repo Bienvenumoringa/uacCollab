@@ -6,6 +6,13 @@ $(document).ready(()=> {
         e.preventDefault();
         let remember = $("#remember").prop("checked") ? 1 : 0;
 
+        const email = fx.get_value('email');
+        const password = fx.get_value('password');
+
+        if(!email && !password) {
+            fx.show_message('Veuillez completer tous les champs svp', 'info');
+            return;
+        }
         const data = {
             email: fx.get_value('email'),
             password: fx.get_value('password'),

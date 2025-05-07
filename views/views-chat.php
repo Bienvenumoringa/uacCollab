@@ -4,11 +4,7 @@
     $page_title = 'UAC collab | ' . $title;
     ob_start();
     session_start();
-    $role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
-    if(empty($_SESSION['user']['id']) OR ! isset($_SESSION['user']['id'])) {
-        header('location:./login');
-        exit;
-    }
+   
     require_once 'includes/chat-style.php'
 ?>
 

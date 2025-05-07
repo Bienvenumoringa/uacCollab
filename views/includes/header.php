@@ -1,5 +1,5 @@
 <?php
-    $role = $_SESSION['user']['role'] == 'etudiant' ? $_SESSION['user']['role'] : $_SESSION['user']['sub_role'];
+    $role = 'None';
 ?>
 <header class="pc-header">
     <div class="header-wrapper">

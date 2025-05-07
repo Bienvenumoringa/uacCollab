@@ -1,14 +1,13 @@
 <?php
     $routes = [
         'projects' => 'projects',
-        'affectations' => 'affectations',
         'login' => 'login',
         'openProjects' => 'open-projects',
         'chat' => 'chat'
     ];
 
     $routes_get = [
-        'affectations' => 'affectations',
+        'home' => 'home',
         'openProjects' => 'open-projects',
         'chat' => 'chat',
         'login' => 'login'

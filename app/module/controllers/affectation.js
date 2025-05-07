@@ -9,17 +9,17 @@ $(document).ready(function() {
     let promotion = 0;
 
     if (parts[1]) {
-        annee = parts[1];
+        annee = parts[1] + '-' + parts[2];
     }
 
-    if (parts[2]) {
-        promotion = parts[2];
+    if (parts[3]) {
+        promotion = parts[3];
     }
 
     get_data();
     get_annee();
     get_promotion();
-    get_encadreur();
+    get_enseigant();
     get_etudiant();
     get_conversation();
     get_conversation_group();
@@ -78,16 +78,6 @@ $(document).ready(function() {
         });
     });
 
-    // Get annee from controller
-    function get_annee() {
-        const data = {
-            action: 'get_annee'
-        };
-
-        const url = fx.get_controller_url('api');
-        fx.fill_select(url, data, 'annee');
-    }
-
     // get promotion
     function get_promotion() {
         const data = {
@@ -99,9 +89,9 @@ $(document).ready(function() {
     }
 
     // get encadreur
-    function get_encadreur() {
+    function get_enseigant() {
         const data = {
-            action: 'get_encadreur'
+            action: 'get_enseigant'
         };
 
         const url = fx.get_controller_url('api');
@@ -120,11 +110,21 @@ $(document).ready(function() {
         fx.fill_select(url, data, 'etudiant');
     }
 
+    // get etudiant
+    function get_annee() {
+        const data = {
+            action: 'get_annee'
+        };
+
+        const url = fx.get_controller_url('api');
+        fx.fill_select(url, data, 'annee');
+    }
+
     // Next event
     $(document).on('click', '#next', function() {
         const annee = fx.get_value('annee');
         const promotion = fx.get_value('promotion');
-        if(annee && promotion) {
+        if(promotion) {
             fx.redirect('./affectations-' + annee + '-' + promotion);
         } else {
             fx.show_message('Veuillez compléter les champs marqués par <b class="star">*</b>' + annee, 'info', 10);

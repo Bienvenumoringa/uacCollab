@@ -23,12 +23,6 @@
     $btn = "";
 
     ob_start();
-
-    $role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
-    if(empty($_SESSION['user']['id']) OR ! isset($_SESSION['user']['id'])) {
-        header('location:./login');
-        exit;
-    }
 ?>
 
 <title><?=$page_title ?></title>

@@ -68,25 +68,8 @@
                         $project->Project($title, $description, $etudiant, $user_id, $backround, $running);
 
                         if(! empty($project->verify())) {
-                            $id_restaure = null;
-                            $status = null;
-                            foreach($project->verify() as $row) {
-                                $id_restaure = $row->id;
-                                $status = $row->status;
-                            }
-
-                            // if the status is 0, restore the pro$project
-                            // else, display a message that the student has already been affected
-                            if($status == '0') {
-                                $project->restaure($id_restaure);
-                                $_SESSION['user']['sub_role'] = 'Directeur';
-                                $response['status'] = 'success';
-                                $response['content'] = 'Le projet crée avec succès';
-                                Functions::send_mail($etudiant_email, $etudiant_noms, $objet, $content);
-                            } else {
-                                $response['status'] = 'info';
-                                $response['content'] = 'Cet projet a déjà été creé';
-                            }
+                            $response['status'] = 'info';
+                            $response['content'] = 'Cet projet a déjà été creé';
                         } else {
                             // insert the project
                             if($project->create()) {
@@ -113,9 +96,8 @@
                 print json_encode($response);
             break;
             case 'load':
-                $annee= $API->get_last_year();
                 $encadreur_id = ! empty($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 0;
-                $result = $project->get_all($annee);
+                $result = $project->get_all();
                 $role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
                 $count = false;
                 $limit = 0;
@@ -202,9 +184,8 @@
                 }
             break;
             case 'get_conversation':
-                $annee = $API->get_last_year();
                 $encadreur_id = ! empty($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 0;
-                $result = $project->get_all($annee);
+                $result = $project->get_all();
                 $role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
                 $count = false;
                 $limit = 0;

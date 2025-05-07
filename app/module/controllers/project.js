@@ -1,11 +1,29 @@
 import * as fx from '../functions/functions.js';
 
 $(document).ready(()=> {
+
+    const path = window.location.pathname;
+    const parts = path.split("-");
+
+    let annee = 0;
+    let promotion = 0;
+
+    if (parts[1]) {
+        annee = parts[1] + '-' + parts[2];
+    }
+
+    if (parts[3]) {
+        promotion = parts[3];
+    }
+
     get_etudiant_by_encadreur();
     get_data();
     get_conversation();
     get_conversation_group();
     get_count_convesation();
+    get_promotion();
+    get_annee();
+    get_etudiant();
 
     // Save or update project btn
     $(document).on('click', '#save', async (e) => {
@@ -25,6 +43,38 @@ $(document).ready(()=> {
             get_data();
         }
     });
+
+    // get promotion
+    function get_promotion() {
+        const data = {
+            action: 'get_promotion'
+        };
+
+        const url = fx.get_controller_url('api');
+        fx.fill_select(url, data, 'promotion');
+    }
+
+    // get etudiant
+    function get_annee() {
+        const data = {
+            action: 'get_annee'
+        };
+
+        const url = fx.get_controller_url('api');
+        fx.fill_select(url, data, 'annee');
+    }
+
+    // get etudiant
+    function get_etudiant() {
+        const data = {
+            annee: annee,
+            promotion: promotion,
+            action: 'get_etudiant'
+        };
+
+        const url = fx.get_controller_url('api');
+        fx.fill_select(url, data, 'etudiant');
+    }
 
     // get all project by directeur
     function get_data() {
@@ -86,5 +136,16 @@ $(document).ready(()=> {
             data: data, url: url, container: container
         });
     }
+
+    // Next event
+        $(document).on('click', '#next', function() {
+            const annee = fx.get_value('annee');
+            const promotion = fx.get_value('promotion');
+            if(promotion && annee) {
+                fx.redirect('./home-' + annee + '-' + promotion);
+            } else {
+                fx.show_message('Veuillez compléter les champs marqués par <b class="star">*</b>' + annee, 'info', 10);
+            }
+        });
 });
 

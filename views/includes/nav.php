@@ -18,12 +18,6 @@
                     </a>
                 </li>
                 <li class="pc-item">
-                    <a onclick="redirect('./affectations')" class="pc-link">
-                        <span class="pc-micon"><i class="bi bi-bookmarks"></i></span>
-                        <span class="pc-mtext">Affectation</span>
-                    </a>
-                </li>
-                <li class="pc-item">
                     <a onclick="redirect('./projects')"class="pc-link">
                         <span class="pc-micon"><i class="bi bi-sign-no-parking"></i></span>
                         <span class="pc-mtext">Projets</span>
