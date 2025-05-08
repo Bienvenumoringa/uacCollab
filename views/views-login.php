@@ -46,7 +46,7 @@
               <h3 class="mb-0"><b>Login</b></h3>
             </div>
             <div class="form-group mb-3">
-              <label class="form-label">Adresse e-mail ou téléphone <span class="text-danger">*</span></label>
+              <label class="form-label">Adresse e-mail ou mon d'utilisateur ou matricule <span class="text-danger">*</span></label>
               <input autocomplete="off" type="text" id="email" class="form-control" placeholder="exemple@uaconline.edu.cd">
             </div>
             <div class="form-group mb-3">

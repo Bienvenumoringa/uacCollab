@@ -118,6 +118,12 @@
                     if(! empty($result1)) {
                         foreach($result1 as $data) {
                             if($data->password == md5($password)) {
+                                unset($_SESSION['user']['role']);
+                                unset($_SESSION['user']['sub_role']);
+                                unset($_SESSION['user']['id']);
+                                unset($_SESSION['user']['path']);
+                                unset($_SESSION['user']['admin']);
+
                                 $_SESSION['departement']['code'] = $data->identifiant;
                                 $_SESSION['departement']['username'] = $data->username;
                                 $_SESSION['departement']['email'] = $data->email;
@@ -132,8 +138,21 @@
                     } elseif(! empty($result2)) {
                         foreach($result2 as $data) {
                             if($data->pwd == md5($password)) {
+                                unset($_SESSION['departement']['code']);
+                                unset($_SESSION['departement']['username']);
+                                unset($_SESSION['departement']['email']);
+
+                                // Verifier si c'est admin ou directeur pour qu'on affiche le groupe
+                                $last_yar = $API->get_last_year();
+                                $admin = $API->get_admin($data->Matriculenseig, $last_yar);
+
+                                $_SESSION['user']['admin'] = '';
+                                if($admin > 0) {
+                                    $_SESSION['user']['admin'] = $data->Matriculenseig;
+                                }
+
                                 $_SESSION['user']['role'] = 'encadreur';
-                                $_SESSION['user']['sub_role'] = 'encadreur';
+                                $_SESSION['user']['sub_role'] = 'Enseignant';
                                 $_SESSION['user']['id'] = $data->Matriculenseig;
                                 $_SESSION['user']['name'] = $data->Nom . ' ' . $data->PostNom . ' ' . $data->Prenom;
                                 $_SESSION['user']['path'] = $data->photo;
@@ -148,6 +167,15 @@
                     } elseif(! empty($result3)) {
                         foreach($result3 as $data) {
                             if($data->mot_de_passe == md5($password)) {
+                                unset($_SESSION['departement']['code']);
+                                unset($_SESSION['departement']['username']);
+                                unset($_SESSION['departement']['email']);
+
+                                $admin = $API->get_student_admin($data->id);
+
+                                // Verifier si c'est admin ou directeur pour qu'on affiche le groupe
+                                $_SESSION['user']['admin'] = $admin;
+                                $_SESSION['user']['sub_role'] = 'etudiant';
                                 $_SESSION['user']['id'] = $data->id;
                                 $_SESSION['user']['role'] = 'etudiant';
                                 $_SESSION['user']['name'] = $data->nom . ' ' . $data->prenom;

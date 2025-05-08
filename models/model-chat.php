@@ -1,6 +1,5 @@
 <?php
     class Message{
-
         private $date;
         private $db;
         private $contenu;
@@ -29,7 +28,7 @@
 
         // Insert message
         public function insert() {
-            $query = 'INSERT INTO message VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            $query = 'INSERT INTO collab_message VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
             $stmt = $this->db->prepare($query);
             return $stmt->execute([
                 null,
@@ -46,18 +45,18 @@
         // Get aull message
         public function get_all($projet) {
             $query = "SELECT
-                message.id AS id,
-                message.dates AS date,
-                message.contenu AS contenu,
-                message.fichier AS fichier,
-                message.projet AS projet,
-                message.auteur AS auteur,
-                message.role AS role,
-                message.admin AS admin
+                collab_message.id AS id,
+                collab_message.dates AS date,
+                collab_message.contenu AS contenu,
+                collab_message.fichier AS fichier,
+                collab_message.projet AS projet,
+                collab_message.auteur AS auteur,
+                collab_message.role AS role,
+                collab_message.admin AS admin
             FROM
-                message
+                collab_message
             WHERE
-                message.projet = ?";
+                collab_message.projet = ?";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                $projet
@@ -73,19 +72,19 @@
         // get message for group
         public function get_group($group, $project) {
             $query = "SELECT
-                message.id AS id,
-                message.dates AS date,
-                message.contenu AS contenu,
-                message.fichier AS fichier,
-                message.projet AS projet,
-                message.auteur AS auteur,
-                message.role AS role,
-                message.admin AS admin
+                collab_message.id AS id,
+                collab_message.dates AS date,
+                collab_message.contenu AS contenu,
+                collab_message.fichier AS fichier,
+                collab_message.projet AS projet,
+                collab_message.auteur AS auteur,
+                collab_message.role AS role,
+                collab_message.admin AS admin
             FROM
-                message
+                collab_message
             WHERE
-                message.admin = ? AND
-                message.projet = ?";
+                collab_message.admin = ? AND
+                collab_message.projet = ?";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $project,
@@ -100,26 +99,28 @@
         }
 
         // Get all conversation
-        public function get_last_conversation($projet) {
+        public function get_last_conversation($projet, $admin) {
             $query = "SELECT
-                message.id AS id,
-                message.dates AS date,
-                message.contenu AS contenu,
-                message.fichier AS fichier,
-                message.projet AS projet,
-                message.auteur AS auteur,
-                message.role AS role
+                collab_message.id AS id,
+                collab_message.dates AS date,
+                collab_message.contenu AS contenu,
+                collab_message.fichier AS fichier,
+                collab_message.projet AS projet,
+                collab_message.auteur AS auteur,
+                collab_message.role AS role
             FROM
-                message
+                collab_message
             WHERE
-                message.projet = ?
+                collab_message.projet = ? AND
+                collab_message.admin = ?
             ORDER BY
-                message.id DESC
+                collab_message.id DESC
             LIMIT 1
             ";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
-               $projet
+               $projet,
+               $admin
             ]);
 
             $result = [];
@@ -134,7 +135,7 @@
             $query = "SELECT
                 COUNT(*) AS nb
             FROM
-                suivi_message
+                collab_suivi_message
             WHERE
                 project = ? AND
                 status = ? AND
@@ -161,7 +162,7 @@
             $query = "SELECT
                     COUNT(*) as nb
                 FROM
-                    suivi_message
+                    collab_suivi_message
                 WHERE
                     status = ? AND
                     auteur = ? AND
@@ -187,7 +188,7 @@
             $query = "SELECT
                 COUNT(*) AS nb
             FROM
-                suivi_message
+                collab_suivi_message
             WHERE
                 message = ? AND
                 status = ?
@@ -207,7 +208,7 @@
 
         public function set_status($projet, $auteur, $role) {
             $query = 'UPDATE
-                suivi_message
+                collab_suivi_message
             SET
                 status = ?
             WHERE
@@ -228,7 +229,7 @@
         public function get_message_no_repondu($project, $admin) {
             $query = 'SELECT *
             FROM
-                message
+                collab_message
             WHERE
                 projet = ? AND
                 dates <= NOW() - INTERVAL 2 HOUR AND
@@ -258,7 +259,7 @@
         }
 
         public function insert_suivi() {
-            $query = 'INSERT INTO suivi_message VALUES (?, ?, ?, ?, ?, ?)';
+            $query = 'INSERT INTO collab_suivi_message VALUES (?, ?, ?, ?, ?, ?)';
             $stmt = $this->db->prepare($query);
             return $stmt->execute([
                 null,
