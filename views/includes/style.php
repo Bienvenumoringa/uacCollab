@@ -1,10 +1,35 @@
 <style>
-    .password-container {
+.card-icon-1, .card-icon-2, .card-icon-3 {
+    padding: 5px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.card-icon-1 {
+    background: #FEECDC;
+    color: #FF5A1F;
+}
+.card-icon-3 {
+    background: #DEF7EC;
+    color: #0E9F6E;
+}
+.card-icon-2 {
+    background: #E1EFFE;
+    color: #3F83F8;
+}
+.password-container {
     position: relative;
     display: inline-block;
     width: 100%;
 }
-
+.small {
+    font-weight: 700;
+    font-size: 12px;
+}
 .password-container input {
     padding-right: 35px; /* Pour laisser de la place à l'icône */
     width: 100%;

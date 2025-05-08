@@ -13,11 +13,11 @@
             <ul class="pc-navbar">
                 <li class="pc-item active">
                     <a onclick="redirect('./')" class="pc-link">
-                        <span class="pc-micon"><i class="bi bi-house"></i></span>
-                        <b><span class="pc-mtext">Accueil</span></b>
+                        <span class="pc-micon"><i class="bi bi-house-door"></i></span>
+                        <b><span class="pc-mtext"><?=! empty($codDep) ? 'Tableau de bord': 'Accueil' ?></span></b>
                     </a>
                 </li>
-                <li class="pc-item">
+                <li <?=! empty($codDep) ? 'hidden': '' ?> class="pc-item">
                     <a onclick="redirect('./projects')"class="pc-link">
                         <span class="pc-micon"><i class="bi bi-sign-no-parking"></i></span>
                         <span class="pc-mtext">Projets</span>

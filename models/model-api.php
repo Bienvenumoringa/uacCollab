@@ -75,17 +75,16 @@
         // Get encadreur from database by id
         public  function get_encadreur_id($id) {
             $query = 'SELECT
-                encadreur.id AS id,
-                encadreur.nom AS nom,
-                encadreur.postnom AS postnom,
-                encadreur.prenom AS prenom,
-                encadreur.telephone AS telephone,
-                encadreur.adresse AS adresse,
-                encadreur.email AS email
+                enseignant.Matriculenseig AS id,
+                enseignant.Nom AS nom,
+                enseignant.PostNom AS postnom,
+                enseignant.Prenom AS prenom,
+                enseignant.Tel AS telephone,
+                enseignant.email AS email
             FROM
-                encadreur
+                enseignant
             WHERE
-                encadreur.id = ?';
+                enseignant.Matriculenseig = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id
@@ -101,22 +100,33 @@
         // Get etudiant from database
         public  function get_etudiant($an, $prom) {
             $query = 'SELECT
-                etudiant.MatriculeInscrit AS id,
+                inscription.idinscription AS id,
+                etudiant.MatriculeInscrit as MatriculeInscrit,
                 etudiant.Nom AS nom,
                 etudiant.PostNom AS postnom,
-                etudiant.Prenom AS prenom,
-                etudiant.Tel AS telephone,
-                etudiant.Email AS email
+                etudiant.Prenom  AS prenom,
+                promotion.NomPro AS promotion,
+                departement.NomDep AS departement,
+                departement.CodDep AS CodDep,
+                inscription.AnneeAcad AS AnneeAcad
             FROM
-                etudiant, inscription
+                inscription,
+                etudiant,
+                promotion,
+                filiere,
+                departement
             WHERE
-                inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
-                inscription.AnneeAcad = ? AND
-                inscription.CodPro = ?';
+
+                etudiant.MatriculeInscrit = inscription.matriculeinscrit AND
+                promotion.Codfil = filiere.Codfil AND
+                promotion.CodPro = inscription.CodPro AND
+                departement.CodDep = filiere.CodDep AND
+                promotion.CodPro = ? AND
+                inscription.AnneeAcad = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
+                $prom,
                 $an,
-                $prom
             ]);
 
             $result = [];
@@ -138,8 +148,8 @@
             FROM
                 etudiant, inscription
             WHERE
-                inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
-                inscription.MatriculeInscrit = ?';
+                inscription.MatriculeInscrit = etudiant.matriculeinscrit AND
+                inscription.idinscription = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id,
@@ -165,7 +175,7 @@
                 etudiant, inscription
             WHERE
                 inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
-                inscription.MatriculeInscrit = ?';
+                inscription.idinscription = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id,
@@ -264,34 +274,33 @@
             $query = 'SELECT
                 COUNT(*) AS nb
             FROM
-                projet_encadreur, projet, inscription
+                collab_projet_encadreur, collab_projet, inscription
             WHERE
-                inscription.id = projet.etudiant AND
-                projet.id = projet_encadreur.projet AND
-                projet_encadreur.encadreur = ? AND
-                projet_encadreur.admin = ? AND
-                inscription.annee = ? AND
-                projet_encadreur.status = ?';
+                inscription.idinscription = collab_projet.inscription AND
+                collab_projet.id = collab_projet_encadreur.projet AND
+                collab_projet_encadreur.enseignant = ? AND
+                collab_projet_encadreur.admin = ? AND
+                inscription.AnneeAcad = ?
+            ';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $encadreur,
-                $this->status,
+                1,
                 $last_year,
-                $this->status
             ]);
 
             $result = 0;
             if($row = $stmt->fetch()) {
                 $result = $row->nb;
             }
-            return $result > 0 ? true : false;
+            return $result;
         }
 
         public function get_admin_by_project($project) {
             $query = 'SELECT
                *
             FROM
-                projet_encadreur
+                collab_projet_encadreur
             WHERE
                 projet = ? AND
                 admin = ?
@@ -309,31 +318,165 @@
             return $result;
         }
 
+        public function get_student_admin($id) {
+            $query = 'SELECT
+                collab_projet_encadreur.enseignant AS admin
+            FROM
+                collab_projet_encadreur, collab_projet
+            WHERE
+                collab_projet_encadreur.projet = collab_projet.id AND
+                collab_projet.inscription = ? AND
+                collab_projet_encadreur.admin = ?
+            ';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id,
+                1
+            ]);
+
+            $result = '';
+            while($row = $stmt->fetch()) {
+                $result = $row->admin;
+            }
+            return $result;
+        }
+
+        // Recuper tous les etudiant du meme directeur lors de message de groupe
+        public function get_student_admin_group($admin, $year) {
+            $query = 'SELECT
+                inscription.idinscription
+            FROM
+                collab_projet, collab_projet_encadreur, inscription
+            WHERE
+                collab_projet.id = collab_projet_encadreur.projet AND
+                collab_projet_encadreur.enseignant = ? AND
+                inscription.idinscription = collab_projet.inscription AND
+                inscription.AnneeAcad = ?';
+
+                $stmt = $this->db->prepare($query);
+                $stmt->execute([
+                   $admin,
+                   $year
+                ]);
+
+                $result = [];
+                while($row = $stmt->fetch()) {
+                    $result[] = $row;
+                }
+                return $result;
+        }
+
+        // Recuper le dicteur pour le message du group
+        public function get_admin_group($admin, $year, $inscription) {
+            $query = 'SELECT
+                collab_projet_encadreur.*
+            FROM
+                collab_projet_encadreur, collab_projet, inscription
+            WHERE
+                collab_projet.id = collab_projet_encadreur.projet AND
+                inscription.idinscription = collab_projet.inscription AND
+                collab_projet_encadreur.enseignant = ? AND
+                inscription.AnneeAcad = ? AND
+                collab_projet.inscription = ?';
+
+                $stmt = $this->db->prepare($query);
+                $stmt->execute([
+                    $admin,
+                    $year,
+                    $inscription
+                ]);
+
+                $result = [];
+                while($row = $stmt->fetch()) {
+                    $result[] = $row;
+                }
+                return $result;
+        }
+
+        // Get etudiant lors qu'il y a la conversation sur un  projet
+        public function get_student_project($id) {
+            $query = 'SELECT
+                    collab_projet.*
+                FROM
+                    collab_projet
+                WHERE
+                    id = ?';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id,
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        // Get enseigant lors qu'il y a la conversation sur un  projet
+        public function get_enseignant_project($id) {
+            $query = 'SELECT
+                collab_projet_encadreur.*
+            FROM
+                collab_projet_encadreur
+            WHERE
+                projet = ?';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id,
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
+        public function get_enseignant_project2($id, $enseignant) {
+            $query = 'SELECT
+                collab_projet_encadreur.*
+            FROM
+                collab_projet_encadreur
+            WHERE
+                projet = ? AND
+                enseignant != ?';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id,
+                $enseignant
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
 
 
         // Get last annee academique
-        // public function get_last_year() {
-        //     $query = 'SELECT annee.id as id
-        //     FROM
-        //         annee, affectation
-        //     WHERE
-        //         affectation.annee = annee.id  AND
-        //         affectation.status = ?
-        //     ORDER BY
-        //         affectation.id DESC
-        //     LIMIT
-        //         1';
-        //     $stmt = $this->db->prepare($query);
-        //     $stmt->execute([
-        //         $this->status
-        //     ]);
+        public function get_last_year() {
+            $query = 'SELECT *
+            FROM
+                inscription
+            ORDER BY
+                idinscription DESC
+            LIMIT
+                1';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
 
-        //     $result = 0;
-        //     while($row = $stmt->fetch()) {
-        //         $result = $row->id;
-        //     }
-        //     return $result;
-        // }
+            $result = 0;
+            while($row = $stmt->fetch()) {
+                $result = $row->AnneeAcad;
+            }
+            return $result;
+        }
 
         // Get the students affected for a project associated with a supervisor and an academic year.
         public  function get_etudiant_by_year($encadreur, $annee) {

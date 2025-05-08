@@ -8,6 +8,7 @@
 
     $routes_get = [
         'home' => 'home',
+        'projects' => 'projects',
         'openProjects' => 'open-projects',
         'chat' => 'chat',
         'login' => 'login'

@@ -9,22 +9,38 @@
     // Se doconnecter si il cliquer sur le bouton logout
     if(str_contains($url, 'logout')) {
       session_destroy();
-      setcookie("sub_role", "", time() - 3600, "/");
+
       setcookie("user_id", "", time() - 3600, "/");
       setcookie("user_role", "", time() - 3600, "/");
       setcookie("user_name", "", time() - 3600, "/");
       setcookie("user_path", "", time() - 3600, "/");
+      setcookie("user_sub_role", "", time() - 3600, "/");
+      setcookie("user_admin", "", time() - 3600, "/");
+
+      setcookie("departement_code", "", time() - 3600, "/");
+      setcookie("user_admin", "", time() - 3600, "/");
+      setcookie("user_admin", "", time() - 3600, "/");
+
       header('location:./login');
     }
 
     // Se connecter lors que use a ete connecter pour la premiere fois
     $_SESSION['user']['id'] = ! empty($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
+    $_SESSION['departement']['code'] = ! empty($_COOKIE['departement_code']) ? $_COOKIE['departement_code'] : '';
     if(! empty($_SESSION['user']['id'])) {
       $_SESSION['user']['id'] = ! empty($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
       $_SESSION['user']['role'] = ! empty($_COOKIE['user_role']) ? $_COOKIE['user_role'] : '';
       $_SESSION['user']['name'] = ! empty($_COOKIE['user_name']) ? $_COOKIE['user_name'] : '';
       $_SESSION['user']['path'] = ! empty($_COOKIE['user_path']) ? $_COOKIE['user_path'] : '';
-      $_SESSION['user']['sub_role'] = ! empty($_COOKIE['sub_role']) ? $_COOKIE['sub_role'] : '';
+      $_SESSION['user']['sub_role'] = ! empty($_COOKIE['user_sub_role']) ? $_COOKIE['user_sub_role'] : '';
+      $_SESSION['user']['admin'] = ! empty($_COOKIE['user_admin']) ? $_COOKIE['user_admin'] : '';
+
+      header('location:./');
+      exit;
+    } elseif(! empty($_SESSION['departement']['code'])) {
+      $_SESSION['departement']['code'] = ! empty($_COOKIE['departement_code']) ? $_COOKIE['departement_code'] : '';
+      $_SESSION['departement']['username'] = ! empty($_COOKIE['departement_username']) ? $_COOKIE['departement_username'] : '';
+      $_SESSION['departement']['email'] = ! empty($_COOKIE['departement_email']) ? $_COOKIE['departement_email'] : '';
 
       header('location:./');
       exit;
@@ -46,7 +62,7 @@
               <h3 class="mb-0"><b>Login</b></h3>
             </div>
             <div class="form-group mb-3">
-              <label class="form-label">Adresse e-mail ou téléphone <span class="text-danger">*</span></label>
+              <label class="form-label">Adresse e-mail ou mon d'utilisateur ou matricule <span class="text-danger">*</span></label>
               <input autocomplete="off" type="text" id="email" class="form-control" placeholder="exemple@uaconline.edu.cd">
             </div>
             <div class="form-group mb-3">
@@ -57,7 +73,7 @@
             <div class="d-flex mt-1 justify-content-between">
               <div class="form-check form-switch">
                 <input autocomplete="off" class="form-check-input input-primary" type="checkbox" id="remember" >
-                <label class="form-check-label text-muted" for="remember">Rester connecté ?</label>
+                <label class="form-check-label text-muted" for="remember">Rester connecté (30 jrs) ?</label>
               </div>
             </div>
             <div class="d-grid mt-4">
@@ -69,7 +85,7 @@
         <div class="auth-footer row">
           <!-- <div class=""> -->
             <div class="col my-1">
-              <p class="m-0">Copyright © <a href="#"></a></p>
+              <p class="m-0">Copyright © <a href="#"><?=date('Y') ?></a></p>
             </div>
 
           <!-- </div> -->

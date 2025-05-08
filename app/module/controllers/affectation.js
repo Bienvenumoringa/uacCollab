@@ -58,7 +58,7 @@ $(document).ready(function() {
         });
     }
 
-    $('#search').on('input', function() {
+    $('#query').on('input', function() {
         const searchValue = $(this).val().trim(); // Récupérer la valeur de recherche
         const data = {
             annee: annee,
@@ -169,4 +169,6 @@ $(document).ready(function() {
             data: data, url: url, container: container
         });
     }
+
+    
 });
