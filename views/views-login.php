@@ -5,6 +5,8 @@
     session_start();
 
     $url = $_GET['url'] ?? '';
+    $str = explode("-", $url);
+    $logout = ! empty($str[1]) ? $str[1] : '';
 
     // Se doconnecter si il cliquer sur le bouton logout
     if(str_contains($url, 'logout')) {
@@ -24,10 +26,11 @@
       header('location:./login');
     }
 
-    // Se connecter lors que use a ete connecter pour la premiere fois
-    $_SESSION['user']['id'] = ! empty($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
-    $_SESSION['departement']['code'] = ! empty($_COOKIE['departement_code']) ? $_COOKIE['departement_code'] : '';
-    if(! empty($_SESSION['user']['id'])) {
+
+    if(! empty($_SESSION['user']['id']) || ! empty($_SESSION['departement']['code'])) {
+        header('location:./');
+        exit;
+    } elseif(! empty($_COOKIE['user_id'])) {
       $_SESSION['user']['id'] = ! empty($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
       $_SESSION['user']['role'] = ! empty($_COOKIE['user_role']) ? $_COOKIE['user_role'] : '';
       $_SESSION['user']['name'] = ! empty($_COOKIE['user_name']) ? $_COOKIE['user_name'] : '';
@@ -37,7 +40,7 @@
 
       header('location:./');
       exit;
-    } elseif(! empty($_SESSION['departement']['code'])) {
+    } elseif(! empty($_COOKIE['departement_code'])) {
       $_SESSION['departement']['code'] = ! empty($_COOKIE['departement_code']) ? $_COOKIE['departement_code'] : '';
       $_SESSION['departement']['username'] = ! empty($_COOKIE['departement_username']) ? $_COOKIE['departement_username'] : '';
       $_SESSION['departement']['email'] = ! empty($_COOKIE['departement_email']) ? $_COOKIE['departement_email'] : '';
@@ -45,6 +48,7 @@
       header('location:./');
       exit;
     }
+
 ?>
 
 <title><?=$page_title ?></title>

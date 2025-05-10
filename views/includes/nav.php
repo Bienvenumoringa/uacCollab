@@ -14,7 +14,6 @@
                 <li class="pc-item active">
                     <a onclick="redirect('./')" class="pc-link">
                         <span class="pc-micon"><i class="bi bi-house-door"></i></span>
-                        <span class="pc-micon"><i class="bi bi-house"></i></span>
                         <b><span class="pc-mtext"><?=! empty($codDep) ? 'Tableau de bord': 'Accueil' ?></span></b>
                     </a>
                 </li>

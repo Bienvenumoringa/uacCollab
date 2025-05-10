@@ -4,6 +4,10 @@
     ob_start();
     session_start();
 
+    if (!isset($_SESSION['departement']['code']) && !isset($_SESSION['user']['id'])) {
+        header('location:./login');
+    }
+
     $parts = [];
     if (isset($_GET['url']) && !empty($_GET['url'])) {
         $parts = explode('-', $_GET['url']);
