@@ -4,9 +4,7 @@
     ob_start();
     session_start();
 
-    if(isset($_SESSION['departement']['code'])) {
-
-    } elseif(isset($_SESSION['user']['id'])) {} else {
+    if (!isset($_SESSION['departement']['code']) && !isset($_SESSION['user']['id'])) {
         header('location:./login');
     }
 
