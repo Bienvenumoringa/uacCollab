@@ -38,6 +38,17 @@
             ]);
         }
 
+        public function update($id) {
+            $query = 'UPDATE collab_projet SET titre = ?, description = ?, inscription = ? WHERE id = ?';
+            $stmt = $this->db->prepare($query);
+            return $stmt->execute([
+                $this->titre,
+                $this->description,
+                $this->etudiant,
+                $id
+            ]);
+        }
+
         // Get projet for departement only
         public function get_admin_project($CodPro, $AnneeAcad) {
             $query = 'SELECT
@@ -349,6 +360,7 @@
                 departement.CodDep = filiere.CodDep AND
                 filiere.Codfil = promotion.Codfil AND
                 collab_projet.id = ?";
+          
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id
@@ -375,6 +387,21 @@
             return $result;
         }
 
+        public function verify_update($id) {
+            $query = 'SELECT * FROM collab_projet WHERE inscription = ? AND id != ?';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $this->etudiant,
+                $id
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
         public function restaure($id) {
             $query = 'UPDATE collab_projet SET status = ? WHERE id = ?';
             $stmt = $this->db->prepare($query);
@@ -382,6 +409,97 @@
                 $this->status,
                 $id
             ]);
+        }
+
+        public function get_project_attente($CodDep, $yar) {
+            $query = 'SELECT COUNT(*) AS nb
+                FROM collab_projet cp
+                JOIN inscription i ON cp.inscription = i.idinscription
+                JOIN promotion p ON i.CodPro = p.CodPro
+                JOIN filiere f ON p.Codfil = f.Codfil
+                JOIN departement d ON f.CodDep = d.CodDep
+                WHERE cp.id NOT IN (
+                    SELECT projet FROM collab_projet_encadreur
+                )
+                AND d.CodDep = ? AND
+                i.AnneeAcad = ?
+            ';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $CodDep,
+                $yar
+            ]);
+
+            $result = 0;
+            while($row = $stmt->fetch()) {
+                $result = $row->nb;
+            }
+            return $result;
+        }
+
+        public function get_project_encours($CodDep, $yar) {
+            $query = 'SELECT COUNT(*) AS nb
+                FROM collab_projet cp
+                JOIN collab_projet_encadreur cpe ON cp.id = cpe.projet
+                JOIN inscription i ON cp.inscription = i.idinscription
+                JOIN promotion p ON i.CodPro = p.CodPro
+                JOIN filiere f ON p.Codfil = f.Codfil
+                JOIN departement d ON f.CodDep = d.CodDep
+                WHERE cp.running = ?
+                AND cpe.admin = ?
+                AND d.CodDep = ?
+                AND i.AnneeAcad = ?
+                AND cpe.status = ?;
+
+            ';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                0,
+                1,
+                $CodDep,
+                $yar,
+                1
+            ]);
+
+            $result = 0;
+            while($row = $stmt->fetch()) {
+                $result = $row->nb;
+            }
+            return $result;
+        }
+
+        public function get_project_finish($CodDep, $yar) {
+            $query = 'SELECT COUNT(*) AS nb
+                FROM collab_projet cp
+                JOIN collab_projet_encadreur cpe ON cp.id = cpe.projet
+                JOIN inscription i ON cp.inscription = i.idinscription
+                JOIN promotion p ON i.CodPro = p.CodPro
+                JOIN filiere f ON p.Codfil = f.Codfil
+                JOIN departement d ON f.CodDep = d.CodDep
+                WHERE cp.running = ?
+                AND cpe.admin = ?
+                AND d.CodDep = ?
+                AND i.AnneeAcad = ?
+                AND cpe.status = ?;
+
+            ';
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                1,
+                1,
+                $CodDep,
+                $yar,
+                1
+            ]);
+
+            $result = 0;
+            while($row = $stmt->fetch()) {
+                $result = $row->nb;
+            }
+            return $result;
         }
 
     }

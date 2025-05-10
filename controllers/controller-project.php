@@ -38,6 +38,7 @@
                     $title = htmlspecialchars($_POST['title']);
                     $description = htmlspecialchars($_POST['description']);
                     $etudiant = htmlspecialchars($_POST['etudiant']);
+                    $id = htmlspecialchars($_POST['id']);
 
                     $backround = Functions::generate_color();
                     $running = 0;
@@ -76,19 +77,34 @@
                     if(! empty($title) && ! empty($description) && ! empty($etudiant)) {
                         $project->Project($title, $description, $etudiant, $user_id, $backround, $running);
 
-                        if(! empty($project->verify())) {
-                            $response['status'] = 'info';
-                            $response['content'] = 'Cet projet a déjà été creé';
-                        } else {
-                            // insert the project
-                            if($project->create()) {
-                                $_SESSION['user']['sub_role'] = 'Directeur';
-                                $response['status'] = 'success';
-                                $response['content'] = 'Le projet crée avec succès';
-                                Functions::send_mail($etudiant_email, $etudiant_noms, $objet, $content);
+                        if(! empty($id)) {
+                            if(! empty($project->verify_update($id))) {
+                                $response['status'] = 'info';
+                                $response['content'] = 'Cet projet existe déjà dans la base de données';
                             } else {
-                                $response['status'] = 'error';
-                                $response['content'] = 'Erreur lors de l\'enregistrement de projet';
+                                if($project->update($id)){
+                                    $response['status'] = 'success';
+                                    $response['content'] = 'Le projet a été modifié avec succès';
+                                } else {
+                                    $response['status'] = 'error';
+                                    $response['content'] = 'Erreur lors de la modification de projet';
+                                }
+                            }
+                        } else {
+                            if(! empty($project->verify())) {
+                                $response['status'] = 'info';
+                                $response['content'] = 'Cet projet a déjà été creé';
+                            } else {
+                                // insert the project
+                                if($project->create()) {
+                                    $_SESSION['user']['sub_role'] = 'Directeur';
+                                    $response['status'] = 'success';
+                                    $response['content'] = 'Le projet crée avec succès';
+                                    Functions::send_mail($etudiant_email, $etudiant_noms, $objet, $content);
+                                } else {
+                                    $response['status'] = 'error';
+                                    $response['content'] = 'Erreur lors de l\'enregistrement de projet';
+                                }
                             }
                         }
                     } else {
@@ -367,6 +383,30 @@
                 }
                 if(! empty($is_not) && $is_not > 0){
                     ?><small class="notification"><b><?=$is_not ?></b></small><?php
+                }
+            break;
+            case 'get_project_attente':
+                try{
+                    $yar = $API->get_last_year();
+                    print $project->get_project_attente($codDep, $yar);
+                } catch(Exception $ex) {
+                    print $ex->getMessage();
+                }
+            break;
+            case 'get_project_encours':
+                try{
+                    $yar = $API->get_last_year();
+                    print $project->get_project_encours($codDep, $yar);
+                } catch(Exception $ex) {
+                    print $ex->getMessage();
+                }
+            break;
+            case 'get_project_finish':
+                try{
+                    $yar = $API->get_last_year();
+                    print $project->get_project_finish($codDep, $yar);
+                } catch(Exception $ex) {
+                    print $ex->getMessage();
                 }
             break;
         }

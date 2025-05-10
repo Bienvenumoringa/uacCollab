@@ -33,6 +33,9 @@ $(document).ready(()=> {
     get_etudiant();
     get_admin_project();
     get_admin_project_recent();
+    get_project_attente();
+    get_project_encours();
+    get_project_finish();
 
     // Save or update project btn
     $(document).on('click', '#save', async (e) => {
@@ -42,6 +45,7 @@ $(document).ready(()=> {
             title: fx.get_value('titre'),
             description: fx.get_value('description'),
             etudiant: fx.get_value('etudiant'),
+            id: fx.get_value('id'),
             action: 'save'
         };
 
@@ -52,6 +56,9 @@ $(document).ready(()=> {
             get_data();
             get_admin_project();
             get_admin_project_recent();
+            get_project_attente();
+            get_project_encours();
+            get_project_finish();
         }
     });
 
@@ -209,6 +216,39 @@ $(document).ready(()=> {
             fx.show_message('Veuillez compléter les champs marqués par <b class="star">*</b>' + annee, 'info', 10);
         }
     });
+
+    function get_project_attente() {
+        const data = {
+            action: 'get_project_attente',
+        };
+        const url = fx.get_controller_url('project');
+        const container = 'attente';
+        fx.handle_display({
+            data: data, url: url, container: container
+        });
+    }
+
+    function get_project_encours() {
+        const data = {
+            action: 'get_project_encours',
+        };
+        const url = fx.get_controller_url('project');
+        const container = 'encours';
+        fx.handle_display({
+            data: data, url: url, container: container
+        });
+    }
+
+    function get_project_finish() {
+        const data = {
+            action: 'get_project_finish',
+        };
+        const url = fx.get_controller_url('project');
+        const container = 'finish';
+        fx.handle_display({
+            data: data, url: url, container: container
+        });
+    }
 
     fx.attach_edit_delete_event('.update', ['id', 'titre', 'description', 'etudiant']);
 

@@ -4,6 +4,12 @@
     ob_start();
     session_start();
 
+    if(isset($_SESSION['departement']['code'])) {
+
+    } elseif(isset($_SESSION['user']['id'])) {} else {
+        header('location:./login');
+    }
+
     $parts = [];
     if (isset($_GET['url']) && !empty($_GET['url'])) {
         $parts = explode('-', $_GET['url']);
@@ -47,9 +53,9 @@
                                     <div class="card-icon">
                                         <i class="bi bi-box-fill card-icon-1"></i>
                                     </div>
-                                    <div class="px-3">
+                                    <div class="px-3 text-center">
                                         <small class="text-muted small">Projets en attente</small>
-                                        <h5 class="mt-2 text-dark"><b>5</b></h5>
+                                        <h5 id="attente" class="mt-2 text-dark"><b><span class="loading-2"></span></b></h5>
                                     </div>
                                 </div>
                             </div>
@@ -60,9 +66,9 @@
                                     <div class="card-icon">
                                         <i class="bi bi-boxes card-icon-2"></i>
                                     </div>
-                                    <div class="px-3">
+                                    <div class="px- text-center">
                                         <small class="text-muted small">Projets en cours</small>
-                                        <h5 class="mt-2 text-dark"><b>10</b></h5>
+                                        <h5 id="encours" class="mt-2 text-dark"><b><span class="loading-2"></span></b></h5>
                                     </div>
                                 </div>
                             </div>
@@ -73,9 +79,9 @@
                                     <div class="card-icon">
                                         <i class="bi bi-box2-fill card-icon-3"></i>
                                     </div>
-                                    <div class="px-3">
+                                    <div class="px-3 text-center">
                                         <small class="text-muted small">Projets terminés</small>
-                                        <h5 class="mt-2 text-dark"><b>27</b></h5>
+                                        <h5 id="finish" class="mt-2 text-dark"><b><span class="loading-2"></span></b></h5>
                                     </div>
                                 </div>
                             </div>

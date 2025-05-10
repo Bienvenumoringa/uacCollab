@@ -115,6 +115,7 @@
                     $result2 = $API->log_enseignant($email);
                     // Log etudiant
                     $result3 = $API->log_etudiants($email);
+                    $time = time() + (30 * 24 * 60 * 60); // 30 jours
                     if(! empty($result1)) {
                         foreach($result1 as $data) {
                             if($data->password == md5($password)) {
@@ -124,9 +125,21 @@
                                 unset($_SESSION['user']['path']);
                                 unset($_SESSION['user']['admin']);
 
+                                setcookie("user_role", "", time() - 3600, "/");
+                                setcookie("user_sub_role", "", time() - 3600, "/");
+                                setcookie("user_id", "", time() - 3600, "/");
+                                setcookie("user_path", "", time() - 3600, "/");
+                                setcookie("user_admin", "", time() - 3600, "/");
+
                                 $_SESSION['departement']['code'] = $data->identifiant;
                                 $_SESSION['departement']['username'] = $data->username;
                                 $_SESSION['departement']['email'] = $data->email;
+
+                                if($remember) {
+                                    setcookie("departement_code", $data->identifiant, $time, "/");
+                                    setcookie("departement_username", $data->username, $time, "/");
+                                    setcookie("departement_email", $data->email, $time, "/");
+                                }
 
                                 $response['status'] = 'success';
                                 $response['content'] = 'Connexion reussie';
@@ -141,6 +154,10 @@
                                 unset($_SESSION['departement']['code']);
                                 unset($_SESSION['departement']['username']);
                                 unset($_SESSION['departement']['email']);
+
+                                setcookie("departement_code", "", time() - 3600, "/");
+                                setcookie("departement_username", "", time() - 3600, "/");
+                                setcookie("departement_email", "", time() - 3600, "/");
 
                                 // Verifier si c'est admin ou directeur pour qu'on affiche le groupe
                                 $last_yar = $API->get_last_year();
@@ -157,6 +174,15 @@
                                 $_SESSION['user']['name'] = $data->Nom . ' ' . $data->PostNom . ' ' . $data->Prenom;
                                 $_SESSION['user']['path'] = $data->photo;
 
+                                if($remember) {
+                                    setcookie("user_admin", $data->Matriculenseig, $time, "/");
+                                    setcookie("user_role", 'encadreur', $time, "/");
+                                    setcookie("user_sub_role", 'Enseignant', $time, "/");
+                                    setcookie("user_id", $data->Matriculenseig, $time, "/");
+                                    setcookie("user_name", $data->Nom . ' ' . $data->PostNom . ' ' . $data->Prenom, $time, "/");
+                                    setcookie("user_path", $data->photo, $time, "/");
+                                }
+
                                 $response['status'] = 'success';
                                 $response['content'] = 'Connexion reussie';
                             } else {
@@ -171,6 +197,10 @@
                                 unset($_SESSION['departement']['username']);
                                 unset($_SESSION['departement']['email']);
 
+                                setcookie("departement_code", "", time() - 3600, "/");
+                                setcookie("departement_username", "", time() - 3600, "/");
+                                setcookie("departement_email", "", time() - 3600, "/");
+
                                 $admin = $API->get_student_admin($data->id);
 
                                 // Verifier si c'est admin ou directeur pour qu'on affiche le groupe
@@ -180,6 +210,15 @@
                                 $_SESSION['user']['role'] = 'etudiant';
                                 $_SESSION['user']['name'] = $data->nom . ' ' . $data->prenom;
                                 $_SESSION['user']['path'] = $data->image;
+
+                                if($remember) {
+                                    setcookie("user_admin", $admin, $time, "/");
+                                    setcookie("user_role", 'etudiant', $time, "/");
+                                    setcookie("user_sub_role", 'etudiant', $time, "/");
+                                    setcookie("user_id", $data->id, $time, "/");
+                                    setcookie("user_name", $data->nom . ' ' . $data->prenom, $time, "/");
+                                    setcookie("user_path", $data->image, $time, "/");
+                                }
 
                                 $response['status'] = 'success';
                                 $response['content'] = 'Connexion reussie';

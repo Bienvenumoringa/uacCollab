@@ -175,7 +175,7 @@
                 etudiant, inscription
             WHERE
                 inscription.matriculeinscrit = etudiant.MatriculeInscrit AND
-                inscription.MatriculeInscrit = ?';
+                inscription.idinscription = ?';
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id,
