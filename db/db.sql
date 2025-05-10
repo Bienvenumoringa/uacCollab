@@ -157,7 +157,7 @@ CREATE TABLE collab_projet (
 CREATE TABLE collab_projet_encadreur (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     projet BIGINT,
-    enseignant BIGINT,
+    enseignant TEXT,
     admin INT,
     status INT
 );
@@ -180,8 +180,8 @@ CREATE TABLE collab_message (
     contenu TEXT,
     fichier TEXT,
     projet BIGINT,  -- Référence à un projet
-    auteur BIGINT,  -- L'utilisateur qui a envoyé le message
-    admin BIGINT,
+    auteur TEXT,  -- L'utilisateur qui a envoyé le message
+    admin TEXT,
     role TEXT
 );
 
@@ -189,7 +189,7 @@ CREATE TABLE collab_suivi_message (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     message BIGINT,
     project BIGINT,
-    auteur BIGINT,  -- L'utilisateur qui reçoit le message
+    auteur TEXT,  -- L'utilisateur qui reçoit le message
     role TEXT,
     status INT DEFAULT 0 -- 0 = non lu, 1 = lu
 );
@@ -281,3 +281,15 @@ VALUES
 ('ENS003', 'Kabeya', 'Kalema', 'Fiston', 'M', '0877777777', 'fiston.kabeya@example.com', 'fkabeya@uaconline.edu.cd', 'Java / Python', '', 'T03', 'F03', 'D03', 'G03', 'D002', '81dc9bdb52d04dc20036dbd8313ed055', 'fiston'),
 ('ENS004', 'Makiese', 'Makuta', 'Alice', 'F', '0866666666', 'alice.makiese@example.com', 'amakiese@uaconline.edu.cd', 'Médecine', '', 'T01', 'F01', 'D01', 'G01', 'D003', '81dc9bdb52d04dc20036dbd8313ed055', 'alice'),
 ('ENS005', 'Ilunga', 'Ndala', 'Jean-Paul', 'M', '0855555555', 'jean.ilunga@example.com', 'jilunga@uaconline.edu.cd', 'Philosophie', '', 'T02', 'F02', 'D02', 'G02', 'D005', '81dc9bdb52d04dc20036dbd8313ed055', 'jeanpaul');
+
+UPDATE etudiant SET photo = '1.png' WHERE MatriculeInscrit = 'ET001';
+UPDATE etudiant SET photo = '2.png' WHERE MatriculeInscrit = 'ET002';
+UPDATE etudiant SET photo = '3.png' WHERE MatriculeInscrit = 'ET003';
+UPDATE etudiant SET photo = '4.png' WHERE MatriculeInscrit = 'ET004';
+UPDATE etudiant SET photo = '5.png' WHERE MatriculeInscrit = 'ET005';
+
+UPDATE enseignant SET photo = '1.png' WHERE Matriculenseig = 'ENS001';
+UPDATE enseignant SET photo = '2.png' WHERE Matriculenseig = 'ENS002';
+UPDATE enseignant SET photo = '3.png' WHERE Matriculenseig = 'ENS003';
+UPDATE enseignant SET photo = '4.png' WHERE Matriculenseig = 'ENS004';
+UPDATE enseignant SET photo = '5.png' WHERE Matriculenseig = 'ENS005';

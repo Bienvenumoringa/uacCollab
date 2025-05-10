@@ -12,6 +12,8 @@
     session_start();
 
     $user_timezone = ! empty($_SESSION['user_timezone']) ? $_SESSION['user_timezone'] : 'UTC';
+    $admin_id = ! empty($_SESSION['user']['admin']) && isset($_SESSION['user']['admin'])
+    ? $_SESSION['user']['admin'] : 0;
 
     $project = new Project($db);
     $chat = new Message($db);
@@ -55,6 +57,7 @@
                 header('Content-Type: application/json');
                 $response = [];
                 try{
+
                     $message = htmlspecialchars($_POST['message']);
                     $user_id = ! empty($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 0;
                     $user_role = ! empty($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
@@ -63,18 +66,10 @@
                     // On recupere le directeur pour ajouter dans le message lors qu'il s'agit de message de groupe
                     $directeur = 0;
                     if($id_project == 0) {
-                        if(! empty($_SESSION['user']['sub_role']) && $_SESSION['user']['sub_role'] == 'Directeur') {
+                        if(! empty($_SESSION['user']['admin']) && $_SESSION['user']['admin'] == $user_id) {
                             $directeur = $user_id;
                         } elseif($user_role == 'etudiant' && ! empty($user_role)) {
-                            $sub_id_project = '';
-                            $project->Project(null, null, $user_id);
-                            foreach($project->verify() as $data) {
-                                $sub_id_project = $data->id;
-                            }
-
-                            foreach($API->get_admin_by_project($sub_id_project) as $data) {
-                                $directeur = $data->encadreur;
-                            }
+                            $directeur = ! empty($_SESSION['user']['admin']) ? $_SESSION['user']['admin'] : $user_id;
                         }
                     }
 
@@ -103,48 +98,54 @@
                     $size = 50 * 1024 * 1024; // 5 Mo
 
                     $res = Functions::upload_file($file, $folder, null, $ext, $size);
+
                     if($res['success']) {
                         $file = $res['message'];
                         $chat->Message($message, $file, $id_project, $user_id, $user_role, $directeur);
                         if($chat->insert()) {
                             /**
-                             * Apres le message envoyer, on va inserer les suivi de message pour savoir si il y a des gens
-                             * Qui ont lus ou pas
-                             * 1. On recuper d'abord l'etudiant pour l'ajouter dans cette liste
-                             * 2. On recuper les encadreurs aussi
-                             * 3. On inser dans la table qui fait cette suivie
+                             * Ici on prend chaque membre pour l'inserer dans la table de suivi de message
+                             * 1. Lors que c'est dans le groupe
+                             *  a. On insert d'abord la personne qui a envoyer
+                             *  b. On prend tout le monde qui participer dans ce projet
+                             * 2. Lors que c'est dans un projet
+                             *  a. On insert d'abord la personne qui a envoyer
+                             *  b. On prend tout le monde qui participer dans ce projet
                              */
                             $message_id = $db->lastInsertId();
                             // Get etudiant or encadreur qui participe au projet
-                           if($id_project == 0) {
-                                $id_encadreur = $directeur;
-                                $role_enc = 'encadreur';
-                                $chat->suivi_message($message_id, $id_project, $id_encadreur, $role_enc);
-                                $chat->insert_suivi();
-                                $resultat_etud = $project->get_student_directeur($directeur);
+                            $last_yar = $API->get_last_year();
 
-                           } else {
-                                $resultat_etud = $project->get_student_project($id_project);
-                                $resultat_enc = $project->get_users_project($id_project);
-                           }
-                            $id_etud = 0;
-                            $id_encadreur = 0;
-                            foreach($resultat_etud as $data) {
-                                $id_etud = $data->etudiant;
-                                $role_etud = 'etudiant';
-                                $chat->suivi_message($message_id, $id_project, $id_etud, $role_etud);
-                                $chat->insert_suivi();
-                            }
+                            if($id_project == 0) {
+                                if($user_role == 'etudiant'){
+                                    foreach($API->get_admin_group($directeur, $last_yar, $user_id ) as $data) {
+                                        $chat->suivi_message($message_id, $id_project, $data->enseignant, 'encadreur');
+                                        $chat->insert_suivi();
+                                    }
+                                } else {
+                                    foreach($API->get_student_admin_group($directeur, $last_yar) as $data) {
+                                        $chat->suivi_message($message_id, $id_project, $data->idinscription, 'etudiant');
+                                        $chat->insert_suivi();
+                                    }
+                                }
+                            } else {
+                                if($user_role == 'encadreur') {
+                                    foreach($API->get_student_project($id_project) as $data) {
+                                        $chat->suivi_message($message_id, $id_project, $data->inscription, 'etudiant');
+                                        $chat->insert_suivi();
+                                    }
+                                    foreach($API->get_enseignant_project2($id_project, $user_id) as $data) {
+                                        $chat->suivi_message($message_id, $id_project, $data->enseignant, 'encadreur');
+                                        $chat->insert_suivi();
+                                    }
 
-                            if($id_project != 0) {
-                                foreach($resultat_enc as $data) {
-                                    $id_encadreur = $data->encadreur;
-                                    $role_enc = 'encadreur';
-                                    $chat->suivi_message($message_id, $id_project, $id_encadreur, $role_enc);
-                                    $chat->insert_suivi();
+                                } else {
+                                    foreach($API->get_enseignant_project($id_project, $API->get_last_year()) as $data) {
+                                        $chat->suivi_message($message_id, $id_project, $data->enseignant, 'encadreur');
+                                        $chat->insert_suivi();
+                                    }
                                 }
                             }
-
                             $response['status'] = 'success';
                             $response['content'] = 'success';
                         } else {
@@ -174,7 +175,7 @@
                     // On recupere le directeur pour ajouter dans le message lors qu'il s'agit de message de groupe
                     $directeur = 0;
                     if($id_project == 0) {
-                        if(! empty($_SESSION['user']['sub_role']) && $_SESSION['user']['sub_role'] == 'Directeur') {
+                        if(! empty($_SESSION['user']['admin']) && $_SESSION['user']['admin'] == $user_id ) {
                             $directeur = $user_id;
                         } elseif($user_role == 'etudiant' && ! empty($user_role)) {
                             $sub_id_project = '';
@@ -184,7 +185,7 @@
                             }
 
                             foreach($API->get_admin_by_project($sub_id_project) as $data) {
-                                $directeur = $data->encadreur;
+                                $directeur = $data->enseignant;
                             }
                         }
                     }
@@ -195,7 +196,6 @@
                     } else {
                         $resultat = $chat->get_all($id_project);
                     }
-
                     if(! empty($resultat)) {
                         $lastDate = null; // Variable pour stocker la dernière date affichée
                         $date = '';
@@ -314,12 +314,14 @@
                                 }
                             } else {
                                 // Le message que j'ai recu
-                                $last_year = $API->get_last_year();
                                 // Filter les auteur
                                 $sub_role = ! empty($_SESSION['user']['sub_role']) ? $_SESSION['user']['sub_role'] : '';
                                 $auteur = '';
                                 if($data->role == 'encadreur') {
-                                    $admin = $API->get_admin($data->auteur, $last_year) > 0 ? 'Admin' : 'Encadreur';
+                                    $last_yar = $API->get_last_year();
+
+                                    $admin = $API->get_admin($data->auteur, $last_yar) > 0 ? 'Directeur' : 'Encadreur';
+
                                     $auteur = $API->get_encadreur_id($data->auteur). ' ' . '<small class="text-dark">'. $admin . '</small>';
                                 } elseif($data->role == 'etudiant') {
                                     $auteur = $API->get_etudiant_id($data->auteur);

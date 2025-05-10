@@ -1,5 +1,16 @@
 <?php
-    $role = 'None';
+    $path = '';
+    $role = '';
+    $username = '';
+    if(! empty($codDep)) {
+        $path = 'images/user/avatar-2.jpg';
+        $role = 'Departement';
+        $username = $_SESSION['departement']['email'];
+    } elseif(isset($_SESSION['user']['name'] ) && ! empty($_SESSION['user']['name'])) {
+        $username = $_SESSION['user']['name'];
+        $role = $_SESSION['user']['sub_role'];
+        $path = $_SESSION['user']['role'] == 'etudiant' ? 'etudiants/' . $_SESSION['user']['path'] : 'encadreur/' . $_SESSION['user']['path'];
+    }
 ?>
 <header class="pc-header">
     <div class="header-wrapper">
@@ -35,7 +46,7 @@
                 <li class="pc-h-item d-none d-md-inline-flex">
                     <form class="header-search ">
                         <i data-feather="search" class="icon-search"></i>
-                        <input autocomplete="off" type="search" class="form-control" placeholder="Search here. . .">
+                        <input autocomplete="off"  id="query" type="search" class="form-control" placeholder="Recherche. . .">
                     </form>
                 </li>
             </ul>
@@ -44,7 +55,7 @@
         <div class="ms-auto">
             <ul class="list-unstyled">
                 <!-- conversation list -->
-                <li class="dropdown pc-h-item">
+                <li <?=! empty($codDep) ? 'hidden': '' ?> class="dropdown pc-h-item">
                     <a class=" dropdown-toggle arrow-none text-dark px-2 mx-2"  data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="bi bi-messenger text-xl" ></i> <span id="count_convesation"></span>
@@ -55,7 +66,7 @@
                             <a class="pc-head-link bg-transparent"><i class="ti ti-x text-danger"></i></a>
                         </div>
                         <?php
-                            if(! empty($role) && $role != 'encadreur') {
+                            if(! empty($_SESSION['user']['admin']) && isset($_SESSION['user']['admin'])) {
                                 ?>
                                     <div class="dropdown-divider"></div>
                                     <div class="list-group list-group-flush w-100" id="conversation-group">
@@ -79,22 +90,22 @@
                 <li class="dropdown pc-h-item header-user-profile">
                     <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" data-bs-auto-close="outside" aria-expanded="false">
-                        <img src="./assets/images/user/avatar-2.jpg" alt="user-image" class="user-avtar">
+                        <img src="assets/<?=$path?>" alt="user-image" class="user-avtar">
                     </a>
                     <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
                         <div class="dropdown-header">
                             <div class="d-flex mb-1">
                                 <div class="flex-shrink-0">
                                     <?php
-                                        $path = '';
-                                        $path = $_SESSION['user']['role'] == 'etudiant' ? 'etudiants/' . $_SESSION['user']['path'] : 'encadreur/' . $_SESSION['user']['path'];
+
+
                                         ?><img src="./assets/<?=$path ?>" alt="user-image"
                                         class="user-avtar wid-35"><?php
                                     ?>
 
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1"><?=$_SESSION['user']['name'] ?></h6>
+                                <div class="flex-grow-1 text-truncate">
+                                    <h6 class="mb-1 text-truncate"><?=$username ?></h6>
                                     <span>
                                         <?php
                                             print Functions::first_capital_letter($role)

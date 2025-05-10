@@ -7,6 +7,13 @@ $(document).ready(()=> {
 
     let annee = 0;
     let promotion = 0;
+    let page = '';
+
+    const urlPage = window.location.pathname; // ex: /uacCollab/projects-2024-2025-PRO01
+    const match = urlPage.match(/\/(projects)[-/]/);
+    if (match) {
+        page = match[1]; // Affiche "projects"
+    }
 
     if (parts[1]) {
         annee = parts[1] + '-' + parts[2];
@@ -24,6 +31,8 @@ $(document).ready(()=> {
     get_promotion();
     get_annee();
     get_etudiant();
+    get_admin_project();
+    get_admin_project_recent();
 
     // Save or update project btn
     $(document).on('click', '#save', async (e) => {
@@ -41,6 +50,8 @@ $(document).ready(()=> {
 
         if (status) {
             get_data();
+            get_admin_project();
+            get_admin_project_recent();
         }
     });
 
@@ -88,6 +99,29 @@ $(document).ready(()=> {
         });
     }
 
+    function get_admin_project() {
+        const data = {
+            CodPro: promotion,
+            AnneeAcad: annee,
+            action: 'get_admin_project',
+        };
+        const url = fx.get_controller_url('project');
+        const container = 'admin-data';
+        fx.handle_display({
+            data: data, url: url, container: container
+        });
+    }
+
+    function get_admin_project_recent() {
+        const data = {
+            action: 'get_admin_project_recent',
+        };
+        const url = fx.get_controller_url('project');
+        const container = 'admin-data-recent';
+        fx.handle_display({
+            data: data, url: url, container: container
+        });
+    }
     // Get the students affected for a project associated with a supervisor and an academic year.
     function get_etudiant_by_encadreur() {
         const data = {
@@ -137,15 +171,46 @@ $(document).ready(()=> {
         });
     }
 
-    // Next event
-        $(document).on('click', '#next', function() {
-            const annee = fx.get_value('annee');
-            const promotion = fx.get_value('promotion');
-            if(promotion && annee) {
-                fx.redirect('./home-' + annee + '-' + promotion);
-            } else {
-                fx.show_message('Veuillez compléter les champs marqués par <b class="star">*</b>' + annee, 'info', 10);
-            }
+    $('#query').on('input', function() {
+        const searchValue = $(this).val().trim(); // Récupérer la valeur de recherche
+        let data = [];
+        let container = '';
+        if(page && page == 'projects') {
+            data = {
+                CodPro: promotion,
+                AnneeAcad: annee,
+                action: 'get_admin_project',
+            };
+            container = 'admin-data';
+        } else {
+            data = {
+                action: 'get_admin_project_recent',
+            };
+            container = 'admin-data-recent';
+        }
+        const url = fx.get_controller_url('project');
+
+        // Appeler la fonction handle_display avec les critères de recherche
+        fx.handle_display({
+            data: data,
+            url: url,
+            container: container,
+            searchQuery: searchValue
         });
+    });
+
+    // Next event
+    $(document).on('click', '#next', function() {
+        const annee = fx.get_value('annee');
+        const promotion = fx.get_value('promotion');
+        if(promotion && annee) {
+            fx.redirect('./projects-' + annee + '-' + promotion);
+        } else {
+            fx.show_message('Veuillez compléter les champs marqués par <b class="star">*</b>' + annee, 'info', 10);
+        }
+    });
+
+    fx.attach_edit_delete_event('.update', ['id', 'titre', 'description', 'etudiant']);
+
 });
 
