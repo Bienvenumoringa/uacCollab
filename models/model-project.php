@@ -360,6 +360,7 @@
                 departement.CodDep = filiere.CodDep AND
                 filiere.Codfil = promotion.Codfil AND
                 collab_projet.id = ?";
+          
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id
