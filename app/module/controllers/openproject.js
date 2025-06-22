@@ -166,6 +166,7 @@ $(document).ready(() => {
         const formData = {
             description: fx.get_value('description'),
             version: fx.get_value('id_file'),
+            id_project: id_project,
             action: 'save_commentaire'
         }
         // get path to controller files

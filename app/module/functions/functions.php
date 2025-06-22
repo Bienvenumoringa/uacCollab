@@ -111,7 +111,7 @@
                 $mail->Host       = 'smtp.gmail.com'; // Remplacez par votre serveur SMTP
                 $mail->SMTPAuth   = true;
                 $mail->Username   = 'uaccollab@gmail.com'; // Remplacez par votre e-mail
-                $mail->Password   = 'sypm hwpw kjto ixpf'; // Utilisez un mot de passe d'application si besoin
+                $mail->Password   = 'dgll klwp pkme anqj'; // Utilisez un mot de passe d'application si besoin
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port       = 587;
                 $mail->CharSet    = 'UTF-8';

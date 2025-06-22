@@ -86,13 +86,13 @@
 
           </div>
         </div>
-        <div class="auth-footer row">
-          <!-- <div class=""> -->
-            <div class="col my-1">
-              <p class="m-0">Copyright © <a href="#"><?=date('Y') ?></a></p>
-            </div>
-
-          <!-- </div> -->
+        <div class="auth-footer d-flex justify-content-between flex-wrap my-1">
+          <div>
+            <p class="m-0">Copyright © <a href="#"><?= date('Y') ?></a> Tous droits réservés | Université de l'Assomption au Congo</p>
+          </div>
+          <div>
+            <p class="m-0">Développé par : Jackson KENNEDY MABHULUKO et Bienvenu MORINGA YILA</p>
+          </div>
         </div>
       </div>
     </div>

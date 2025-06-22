@@ -97,6 +97,30 @@
             return $result;
         }
 
+         public  function get_encadreur_email($id) {
+            $query = 'SELECT
+                enseignant.Matriculenseig AS id,
+                enseignant.Nom AS nom,
+                enseignant.PostNom AS postnom,
+                enseignant.Prenom AS prenom,
+                enseignant.Tel AS telephone,
+                enseignant.email AS email
+            FROM
+                enseignant
+            WHERE
+                enseignant.Matriculenseig = ?';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
         // Get etudiant from database
         public  function get_etudiant($an, $prom) {
             $query = 'SELECT
