@@ -1,4 +1,54 @@
 <style>
+    .bg-primary.toast,
+    .bg-primary.bs-toast,
+    .bg-primary.bs-toast .toast-header {
+        background-color: #11be67ff !important;
+        box-shadow: none !important;
+        border: 3px solid #11be67ff !important;
+        color: #FFFFFF !important;
+        opacity: .9 !important;
+    }
+
+    .toast-header .btn-clos {
+        border: none;
+        outline: none;
+        background: transparent !important;
+        color: #FFFFFF !important;
+    }
+
+    .bg-danger.toast,
+    .bg-danger.bs-toast,
+    .bg-danger.bs-toast .toast-header {
+        background-color: #FF4D4F !important;
+        box-shadow: none !important;
+        border: 3px solid #FF4D4F !important;
+        color: #FFFFFF !important;
+    }
+
+    .bg-warning.toast,
+    .bg-warning.bs-toast,
+    .bg-warning.bs-toast .toast-header {
+        background-color: #FAAD14 !important;
+        box-shadow: none !important;
+        border: 3px solid #FAAD14 !important;
+        color: #FFFFFF !important;
+    }
+
+    .bg-dark.toast,
+    .bg-dark.bs-toast,
+    .bg-dark.bs-toast .toast-header {
+        box-shadow: none !important;
+        background: #333 !important;
+        border: 3px solid #333 !important;
+        color: #FFFFFF !important;
+    }
+
+    .bg-primary.bs-toast .toast-header .btn-close,
+    .bg-danger.bs-toast .toast-header .btn-close,
+    .bg-warning.bs-toast .toast-header .btn-close {
+        color: #FFFFFF !important;
+        box-shadow: none !important;
+    }
 .card-icon-1, .card-icon-2, .card-icon-3 {
     padding: 5px;
     border-radius: 50%;
