@@ -24,7 +24,7 @@ class Project_file {
         $this->version = $version;
     }
     public function create() {
-        $query = 'INSERT INTO fichiers_projet (dates, projet, fichier, user, commentaire, type, version, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT INTO collab_fichiers_projet (dates, projet, fichier, user, commentaire, type, version, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([
             $this->date,
@@ -38,7 +38,7 @@ class Project_file {
         ]);
     }
     public function update_file($fichier, $id){
-        $query = 'UPDATE fichiers_projet SET fichier = ? WHERE id = ?';
+        $query = 'UPDATE collab_fichiers_projet SET fichier = ? WHERE id = ?';
         $stmt = $this->db->prepare($query);
 
         return $stmt->execute([
@@ -47,22 +47,22 @@ class Project_file {
     }
     public function get_all($project) {
         $query = "SELECT
-                fichiers_projet.id,
-                fichiers_projet.dates as date,
-                fichiers_projet.projet,
-                fichiers_projet.fichier,
-                fichiers_projet.user,
-                fichiers_projet.commentaire,
-                fichiers_projet.type,
-                fichiers_projet.version
+                collab_fichiers_projet.id,
+                collab_fichiers_projet.dates as date,
+                collab_fichiers_projet.projet,
+                collab_fichiers_projet.fichier,
+                collab_fichiers_projet.user,
+                collab_fichiers_projet.commentaire,
+                collab_fichiers_projet.type,
+                collab_fichiers_projet.version
             FROM
-                fichiers_projet
+                collab_fichiers_projet
             WHERE
-                fichiers_projet.projet = ?
+                collab_fichiers_projet.projet = ?
             AND
-                fichiers_projet.status = ?
+                collab_fichiers_projet.status = ?
             ORDER BY
-                fichiers_projet.id DESC";
+                collab_fichiers_projet.id DESC";
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $project,
@@ -71,7 +71,7 @@ class Project_file {
         return $stmt->fetch();
     }
     public function get_version_by_project($project) {
-        $query = "SELECT COUNT(version) as version FROM fichiers_projet WHERE projet = ? AND status = ?";
+        $query = "SELECT COUNT(version) as version FROM collab_fichiers_projet WHERE projet = ? AND status = ?";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$project, $this->status]);
         $result = 0;
@@ -82,40 +82,20 @@ class Project_file {
     }
     public function get_title($project, $version): array {
         $query = "
-            SELECT
-                fp.*,
-                e.nom AS etudiant_nom,
-                e.prenom AS etudiant_prenom,
-                en.nom AS encadreur_nom,
-                en.prenom AS encadreur_prenom
-            FROM fichiers_projet fp
-            LEFT JOIN etudiant e ON (fp.user = e.id AND fp.type = 'correction')
-            LEFT JOIN encadreur en ON (fp.user = en.id AND fp.type = 'soumission')
-            WHERE fp.projet = ?
-            AND fp.version = ?
-            AND fp.status = ?
-            ORDER BY fp.version DESC
+            SELECT *
+            FROM collab_fichiers_projet
+            WHERE projet = ? AND version = ? AND status = ?;
         ";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$project, $version, $this->status]);
         $result = [];
-        while ($row = $stmt->fetch(PDO::FETCH_OBJ)) {
-            if ($row->type === 'correction') {
-                $row->nom = $row->etudiant_nom;
-                $row->prenom = $row->etudiant_prenom;
-            } else if ($row->type === 'soumission') {
-                $row->nom = $row->encadreur_nom;
-                $row->prenom = $row->encadreur_prenom;
-            } else {
-                $row->nom = null;
-                $row->prenom = null;
-            }
+        while ($row = $stmt->fetch()) {
             $result[] = $row;
         }
         return $result;
     }
     public function get_data_version($project, $version): array{
-        $query = "SELECT * FROM fichiers_projet WHERE projet = ? AND version = ? AND status = ? ORDER BY version DESC";
+        $query = "SELECT * FROM collab_fichiers_projet WHERE projet = ? AND version = ? AND status = ? ORDER BY version DESC";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$project, $version, $this->status]);
         $result = [];
@@ -125,7 +105,7 @@ class Project_file {
         return $result;
     }
     public function get_version($project){
-        $query = "SELECT * FROM fichiers_projet WHERE projet = ? AND status = ? ORDER BY version DESC";
+        $query = "SELECT * FROM collab_fichiers_projet WHERE projet = ? AND status = ? ORDER BY version DESC";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$project, $this->status]);
         $result = [];
@@ -136,36 +116,42 @@ class Project_file {
     }
     public function get_project_by_id($project) {
         $query = "SELECT
-            projet.id AS id,
-            projet.dates AS date,
-            projet.titre AS titre,
-            projet.description AS description,
-            projet.etudiant AS etudiant,
-            projet.encadreur AS encadreur,
-            projet.backgroud AS backgroud,
-            projet.running AS running,
-            projet.status AS status,
-            etudiant.nom AS nom,
-            etudiant.postnom AS postnom,
-            etudiant.prenom AS prenom,
-            etudiant.genre AS genre,
-            etudiant.image AS image,
-            inscription.id AS id_inscription,
-            CONCAT(promotion.description, ' ',  departement.description ) AS promotion,
-            projet_encadreur.encadreur AS encadreur_id
+            collab_projet.id AS id,
+            collab_projet.dates AS date,
+            collab_projet.titre AS titre,
+            collab_projet.description AS description,
+            collab_projet.inscription AS etudiant,
+            collab_projet_encadreur.enseignant AS encadreur,
+            collab_projet.backgroud AS backgroud,
+            collab_projet.running AS running,
+            etudiant.Nom AS nom,
+            etudiant.PostNom AS postnom,
+            etudiant.Prenom AS prenom,
+            etudiant.Sexe AS genre,
+            etudiant.photo AS image,
+            inscription.idinscription AS id_inscription,
+            CONCAT(promotion.NomPro, ' ',  departement.NomDep ) AS promotion,
+            collab_projet_encadreur.enseignant AS encadreur_id
         FROM
-            projet, etudiant, inscription, promotion, departement, projet_encadreur
+            collab_projet, etudiant, inscription, promotion, departement, filiere, collab_projet_encadreur
         WHERE
-            etudiant.id = inscription.etudiant AND
-            inscription.id = projet.etudiant AND
-            promotion.id = inscription.promotion AND
-            departement.id = promotion.departement AND
-            projet_encadreur.projet = projet.id AND
-            projet.status = ? AND projet.id = ?  GROUP BY projet.id";
+            etudiant.MatriculeInscrit = inscription.matriculeinscrit
+        AND
+            inscription.idinscription = collab_projet.inscription
+        AND
+            promotion.CodPro = inscription.CodPro
+        AND
+            departement.CodDep = filiere.CodDep
+        AND
+            filiere.Codfil = promotion.Codfil
+        AND
+            collab_projet_encadreur.projet = collab_projet.id
+        AND
+            collab_projet.id = ?
+        GROUP BY
+            collab_projet.id";
         $stmt = $this->db->prepare($query);
-        $stmt->execute([
-            $this->status,
-            $project
+        $stmt->execute([ $project
         ]);
         $result = [];
         while($row = $stmt->fetch()) {
@@ -177,7 +163,7 @@ class Project_file {
         $query = "SELECT
              COUNT(*) AS nb
         FROM
-            fichiers_projet
+            collab_fichiers_projet
         WHERE
             status = ?";
         $stmt = $this->db->prepare($query);
@@ -191,7 +177,19 @@ class Project_file {
         return $result;
     }
     public function get_project_by_directeur($project){
-        $query = "SELECT projet_encadreur.id, projet_encadreur.projet, projet_encadreur.encadreur FROM projet_encadreur WHERE projet_encadreur.projet = ? AND projet_encadreur.status = ? ORDER BY projet_encadreur.id ASC LIMIT 1";
+        $query = " SELECT
+            collab_projet_encadreur.id,
+            collab_projet_encadreur.projet,
+            collab_projet_encadreur.enseignant as encadreur,
+            collab_projet_encadreur.admin
+        FROM
+            collab_projet_encadreur
+        WHERE
+            collab_projet_encadreur.projet = ?
+        AND
+            collab_projet_encadreur.status = ?
+        ORDER BY
+            collab_projet_encadreur.id ASC LIMIT 1";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$project, $this->status]);
         $result = [];
@@ -201,27 +199,76 @@ class Project_file {
         return $result;
     }
     public function restaure($id) {
-        $query = 'UPDATE fichiers_projet SET status = ? WHERE id = ?';
+        $query = 'UPDATE collab_fichiers_projet SET status = ? WHERE id = ?';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([$this->status, $id]);
     }
 
-    public function get_send_email_encadreur($projet){
-        $query = "SELECT encadreur.nom, encadreur.postnom, encadreur.prenom, encadreur.email, projet.titre FROM encadreur, projet_encadreur, projet WHERE encadreur.id=projet_encadreur.encadreur AND projet.id=projet_encadreur.projet AND projet_encadreur.projet = ?  AND projet_encadreur.status = ?";
+    public function get_send_email_project($projet) {
+        $query = "
+            SELECT
+                enseignant.Matriculenseig AS matricule,
+                enseignant.Nom AS nom,
+                enseignant.PostNom AS postnom,
+                enseignant.Prenom AS prenom,
+                enseignant.Email AS email,
+                collab_projet.titre AS titre
+            FROM
+                collab_projet
+            JOIN
+                collab_projet_encadreur ON collab_projet_encadreur.projet = collab_projet.id
+            JOIN
+                enseignant ON enseignant.Matriculenseig = collab_projet_encadreur.enseignant
+            WHERE
+                collab_projet.id = ?
+                AND collab_projet_encadreur.status = ?
+
+            UNION
+
+            SELECT
+                etudiant.MatriculeInscrit AS matricule,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom AS prenom,
+                etudiant.Email AS email,
+                collab_projet.titre AS titre
+            FROM
+                collab_projet
+            JOIN
+                inscription ON inscription.idinscription = collab_projet.inscription
+            JOIN
+                etudiant ON etudiant.MatriculeInscrit = inscription.matriculeinscrit
+            WHERE
+                collab_projet.id = ?
+        ";
+
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $projet,
-            $this->status
+            $this->status,
+            $projet
         ]);
 
         $result = [];
-        while($row = $stmt->fetch()) {
+        while ($row = $stmt->fetch()) {
             $result[] = $row;
         }
+
         return $result;
     }
+
     public function get_send_email_encadreur_by_id($encadreur){
-        $query = "SELECT encadreur.nom, encadreur.postnom, encadreur.prenom, encadreur.email FROM encadreur WHERE encadreur.id = ? AND encadreur.status = ?";
+        $query = "SELECT
+            enseignant.Nom as nom,
+            enseignant.PostNom as postnom,
+            enseignant.Prenom as prenom,
+            enseignant.Email as email
+        FROM
+            enseignant
+        WHERE
+            enseignant.Matriculenseig = ?
+        AND
+            enseignant.status = ?";
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $encadreur,

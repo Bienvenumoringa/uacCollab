@@ -139,7 +139,7 @@
                                     <td><?=$data->promotion . ' ' . $data->CodDep ?></td>
                                     <td><?=$data->AnneeAcad ?></td>
                                     <td>
-                                        <a href="" class="text-muted"><i class="bi bi-joystick mx-2"></i></a>
+                                        <a onclick="redirect('affectation-<?=$data->id ?>')" class="text-muted"><i class="bi bi-joystick mx-2"></i></a>
                                         <a href="#" class="update text-primary" data-bs-toggle="modal" data-bs-target="#exampleModalToggle"><i class="bi bi-pencil-square mx-2"></i></a>
                                     </td>
                                 </tr>

@@ -47,7 +47,7 @@
             <i class="bi bi-bell me-2" id="icon"></i>
             <div class="me-auto fw-semibold" id="title">Bootstrap</div>
             <small>Just now</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-clos" data-bs-dismiss="toast" aria-label="Close">X</button>
         </div>
         <div class="toast-body text-white" id="content">
             Fruitcake chocolate bar tootsie roll gummies jelly beans cake.

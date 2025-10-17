@@ -23,7 +23,7 @@ class Commentaire {
     }
     // Insérer un nouveau commentaire
     public function create() {
-        $query = 'INSERT INTO commentaire (dates, contenu, filtre, user, id_file, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT INTO collab_commentaire (dates, contenu, filtre, user, id_file, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([
             $this->date,
@@ -37,20 +37,20 @@ class Commentaire {
     }
     // Récupérer tous les commentaires actifs
     public function get_all() {
-        $query = "SELECT * FROM commentaire WHERE status = ? ORDER BY id DESC";
+        $query = "SELECT * FROM collab_commentaire WHERE status = ? ORDER BY id DESC";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$this->status]);
         return $stmt->fetchAll();
     }
     // Récupérer un commentaire par ID
     public function get_by_id($id) {
-        $query = "SELECT * FROM commentaire WHERE id = ? AND status = ?";
+        $query = "SELECT * FROM collab_commentaire WHERE id = ? AND status = ?";
         $stmt = $this->db->prepare($query);
         $stmt->execute([$id, $this->status]);
         return $stmt->fetch();
     }
     public function get_comment_by_version($version){
-        $query = 'SELECT * FROM commentaire WHERE id_file = ? AND status = ? AND filtre = ?';
+        $query = 'SELECT * FROM collab_commentaire WHERE id_file = ? AND status = ? AND filtre = ?';
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $version,
@@ -67,13 +67,13 @@ class Commentaire {
         $query = "
             SELECT
                 c.*,
-                e.nom AS encadreur_nom,
-                e.prenom AS encadreur_prenom,
-                et.nom AS etudiant_nom,
-                et.prenom AS etudiant_prenom
-            FROM commentaire c
-            LEFT JOIN encadreur e ON (c.user = e.id AND c.role = 'encadreur')
-            LEFT JOIN etudiant et ON (c.user = et.id AND c.role = 'etudiant')
+                e.Nom AS encadreur_nom,
+                e.Prenom AS encadreur_prenom,
+                et.Nom AS etudiant_nom,
+                et.Prenom AS etudiant_prenom
+            FROM collab_commentaire c
+            LEFT JOIN enseignant e ON (c.user = e.Matriculenseig AND c.role = 'encadreur')
+            LEFT JOIN etudiant et ON (c.user = et.MatriculeInscrit AND c.role = 'etudiant')
             WHERE c.id_file = ?
             AND c.status = ?
             ORDER BY c.id DESC
@@ -83,7 +83,7 @@ class Commentaire {
         $result = [];
         while ($row = $stmt->fetch()) {
             if ($row->role === 'encadreur') {
-                $row['nom'] = $row->encadreur_nom;
+                $row->nom = $row->encadreur_nom;
                 $row->prenom = $row->encadreur_prenom;
             } else if ($row->role === 'etudiant') {
                 $row->nom = $row->etudiant_nom;
@@ -98,7 +98,7 @@ class Commentaire {
     }
     // Mettre à jour un commentaire
     public function update($id, $contenu, $filtre) {
-        $query = 'UPDATE commentaire SET contenu = ?, filtre = ? WHERE id = ? AND status = ?';
+        $query = 'UPDATE collab_commentaire SET contenu = ?, filtre = ? WHERE id = ? AND status = ?';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([
             $contenu,
@@ -109,18 +109,18 @@ class Commentaire {
     }
     // Supprimer logiquement un commentaire (status à 0)
     public function delete($id) {
-        $query = 'UPDATE commentaire SET status = 0 WHERE id = ?';
+        $query = 'UPDATE collab_commentaire SET status = 0 WHERE id = ?';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([$id]);
     }
     // Restaurer un commentaire (status à 1)
     public function restaure($id) {
-        $query = 'UPDATE commentaire SET status = 1 WHERE id = ?';
+        $query = 'UPDATE collab_commentaire SET status = 1 WHERE id = ?';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([$id]);
     }
     public function add_liike($user, $commentaire, $role){
-        $query = 'INSERT INTO likes VALUES (?, ?, ?, ?, ?)';
+        $query = 'INSERT INTO collab_likes VALUES (?, ?, ?, ?, ?)';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([
           null,
@@ -130,7 +130,7 @@ class Commentaire {
           $role]);
     }
     public function verify_like_exist($user, $commentaire, $role){
-        $query = 'SELECT * FROM likes WHERE user = ? AND commentaire = ? AND role = ?';
+        $query = 'SELECT * FROM collab_likes WHERE user = ? AND commentaire = ? AND role = ?';
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $user, $commentaire, $role
@@ -142,7 +142,7 @@ class Commentaire {
         return $result;
     }
     public function set_like($id, $like){
-        $query = 'UPDATE likes SET likes = ? WHERE id = ?';
+        $query = 'UPDATE collab_likes SET likes = ? WHERE id = ?';
         $stmt = $this->db->prepare($query);
         return $stmt->execute([
             $like,
@@ -150,7 +150,7 @@ class Commentaire {
         ]);
     }
     public function toggle_like($user, $commentaire, $role){
-        $query = 'SELECT COUNT(*) as nb FROM likes WHERE user = ? AND commentaire = ? AND role = ? AND likes = ?';
+        $query = 'SELECT COUNT(*) as nb FROM collab_likes WHERE user = ? AND commentaire = ? AND role = ? AND likes = ?';
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $user, $commentaire, $role, 1
@@ -162,7 +162,7 @@ class Commentaire {
         return $result > 0 ? '-fill' : '';
     }
     public function count_like($commentaire){
-        $query = 'SELECT COUNT(*) as nb FROM likes WHERE  commentaire = ?  AND likes = ?';
+        $query = 'SELECT COUNT(*) as nb FROM collab_likes WHERE  commentaire = ?  AND likes = ?';
         $stmt = $this->db->prepare($query);
         $stmt->execute([
             $commentaire, 1
@@ -174,14 +174,14 @@ class Commentaire {
         return $result > 0 ? $result : '';
     }
     public function count_reponse($commentaire_id){
-        $query = 'SELECT COUNT(*) as nb FROM commentaire WHERE filtre = ?';
+        $query = 'SELECT COUNT(*) as nb FROM collab_commentaire WHERE filtre = ?';
         $stmt = $this->db->prepare($query);
         $stmt->execute([$commentaire_id]);
         $row = $stmt->fetch();
         return ($row && $row->nb > 0) ? $row->nb : '';
     }
     public function get_reponses_by_commentaire($id_parent) {
-        $query = 'SELECT * FROM commentaire WHERE filtre = ? ORDER BY dates DESC';
+        $query = 'SELECT * FROM collab_commentaire WHERE filtre = ? ORDER BY dates DESC';
         $stmt = $this->db->prepare($query);
         $stmt->execute([$id_parent]);
         return $stmt->fetchAll(PDO::FETCH_OBJ); //  pour récupérer TOUTES les réponses sous forme d'objet

@@ -94,24 +94,24 @@
                     </div>
                     <hr>
                     <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>Sujet</th>
-                                <th>Description</th>
-                                <th>Etudiant</th>
-                                <th>Promotion</th>
-                                <th>Année</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-data-recent">
-                            <tr>
-                                <td class="text-center" colspan="100">Chargement encours...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Sujet</th>
+                                    <th>Description</th>
+                                    <th>Etudiant</th>
+                                    <th>Promotion</th>
+                                    <th>Année</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-data-recent">
+                                <tr>
+                                    <td class="text-center" colspan="100">Chargement encours...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div <?=! empty($codDep) ? 'hidden': '' ?> class="row" id="container">

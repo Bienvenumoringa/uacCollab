@@ -50,7 +50,7 @@
             <i class="bi bi-bell me-2" id="icon"></i>
             <div class="me-auto fw-semibold" id="title"></div>
             <small>now</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close">X</button>
         </div>
         <div class="toast-body text-white" id="content">
 
@@ -65,7 +65,6 @@
     <script src="./assets/js/fonts/custom-font.js"></script>
     <script src="./assets/js/pcoded.js"></script>
     <script src="./assets/js/plugins/feather.min.js"></script>
-
     <script src="./assets/js/jquery.js"></script>
     <script src="./assets/js/plugins/jquery.dataTables.min.js"></script>
     <script src="./assets/js/plugins/dataTables.bootstrap5.min.js"></script>

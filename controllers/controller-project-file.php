@@ -47,34 +47,45 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
                     exit;
                 }
 
+                $file = $result['message'];
+
                 // Préparation données
                 $version = $project_file->get_version_by_project($projet_id);
-                $project_file->Project_files($projet_id, $name_file, $user_id, $commentaire, $type, $version);
+                $project_file->Project_files($projet_id, $file, $user_id, $commentaire, $type, $version);
 
                 // Enregistrement en BDD (une seule fois)
                 if ($project_file->create()) {
-                    $data_email = $project_file->get_send_email_encadreur($projet_id);
+                    $data_email = $project_file->get_send_email_project($projet_id);
                     if (!empty($data_email)) {
                         foreach ($data_email as $encadreur) {
-                            $email = $encadreur->email;
-                            $full_name = $encadreur->nom . ' ' . $encadreur->postnom . ' ' . $encadreur->prenom;
-                            $titre_project = $encadreur->titre;
+                            if ($encadreur->matricule == $user_id) {
+                                continue; // Ne pas envoyer d'email à l'utilisateur qui a ajouté le fichier
+                            }else{
+                                $email = $encadreur->email;
+                                $full_name = $encadreur->nom . ' ' . $encadreur->postnom . ' ' . $encadreur->prenom;
+                                $titre_project = $encadreur->titre;
 
-                            $subject = "Nouveau fichier ajouté au projet";
-                            $body = "
-                                Bonjour <strong>{$full_name}</strong>,<br><br>
-                                Un nouveau fichier a été ajouté au projet #{$titre_project}.<br>
-                                Merci de consulter la plateforme pour plus de détails.<br><br>
-                                Cordialement,<br>
-                                UAC Collab
-                            ";
+                                $subject = "Nouveau fichier ajouté au projet";
+                                $body = "
+                                    Bonjour <strong>{$full_name}</strong>,<br><br>
+                                    Un nouveau fichier a été ajouté au projet #{$titre_project}.<br>
+                                    Merci de consulter la plateforme pour plus de détails.<br><br>
+                                    Cordialement,<br>
+                                    UAC Collab
+                                ";
 
-                            Functions::send_mail($email, $full_name, $subject, $body);
+                                if (Functions::send_mail($email, $full_name, $subject, $body)){
+                                    $response['status'] = 'success';
+                                    $response['content'] = 'Enregistrement réussi avec succès.';
+                                } else {
+                                    $response['status'] = 'error';
+                                    $response['content'] = 'Erreur lors de l\'envoi de l\'email.';
+                                }
+
+                            }
+
                         }
                     }
-
-                    $response['status'] = 'success';
-                    $response['content'] = 'Enregistrement réussi avec succès.';
 
                 } else {
                     $response['status'] = 'error';
@@ -136,13 +147,19 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
 
                     if (!empty($results)) {
                         foreach ($results as $rows) {
+                            $auteur = " ";
+                            if ($rows->type == 'correction') {
+                                $auteur = $api->get_encadreur_id($rows->user);
+                            } elseif ($rows->type == 'soumission') {
+                                $auteur = $api->get_etudiant_id($rows->user);
+                            }
                             ?>
                                 <!-- Photo de profil + nom + date -->
                                 <div class="post-header">
                                     <img src="assets/etudiants/1.png" alt="Profil" class="avatar">
                                     <div>
                                         <input type="hidden" id="id_file" value="<?=$rows->id?>">
-                                        <h5 class="post-author"><?= $rows->nom . " " . $rows->prenom ?></h5>
+                                        <h5 class="post-author"><?= $auteur ?></h5>
                                         <small class="post-date"><?= Functions::date_format($rows->dates) . ', ' . Functions::local_time($rows->dates, $user_timezone) ?></small>
                                     </div>
                                 </div>
@@ -380,9 +397,9 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
                                 <div class="justify-content-between d-flex">
                                     <h3 class="text-white"><?= $data->titre?></h3>
                                 </div>
+                                <p><?= $data->description ?></p>
                                 <p><b><?= $data->nom . " " . $data->postnom . " " . $data->prenom ?></b></p>
                                 <b><?= $data->promotion ?></b>
-                                <p><?= $data->description ?></p>
                             </div>
                             <div class="card-icon d-flex justify-content-end px-3">
                                 <img src="assets/etudiants/1.png" class="img2">
@@ -409,14 +426,45 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
                 $response = [];
 
                 try {
+                    $id_project = htmlspecialchars($_POST['id_project']);
                     $description = htmlspecialchars($_POST['description']);
                     $id_file = htmlspecialchars($_POST['version']);
                     $filtre = 0;
                     if (! empty($description && $id_file)){
                         $commentaire_data->setCommentaire($description,$filtre, $user_id,$id_file, $user_role);
                         if ($commentaire_data->create()){
-                            $response['status'] = 'success';
-                            $response['content'] = 'enregistrement réussi avec succès';
+                            $data_email = $project_file->get_send_email_project($id_project);
+                            if (!empty($data_email)) {
+                                foreach ($data_email as $encadreur) {
+                                    if ($encadreur->matricule == $user_id) {
+                                        continue; // Ne pas envoyer d'email à l'utilisateur qui a ajouté le fichier
+                                    }else{
+                                        $email = $encadreur->email;
+                                        $full_name = $encadreur->nom . ' ' . $encadreur->postnom . ' ' . $encadreur->prenom;
+                                        $titre_project = $encadreur->titre;
+
+                                        $subject = "Nouveau commentaire";
+                                        $body = "
+                                            Bonjour <strong>{$full_name}</strong>,<br><br>
+                                            Un nouveau commentaire a été ajouté au projet #{$titre_project}.<br>
+                                            Merci de consulter la plateforme pour plus de détails.<br><br>
+                                            Cordialement,<br>
+                                            UAC Collab
+                                        ";
+
+                                        if (Functions::send_mail($email, $full_name, $subject, $body)){
+                                            $response['status'] = 'success';
+                                            $response['content'] = 'Enregistrement réussi avec succès.';
+                                        } else {
+                                            $response['status'] = 'error';
+                                            $response['content'] = 'Erreur lors de l\'envoi de l\'email.';
+                                        }
+
+                                    }
+
+                                }
+                            }
+
                         }else{
                             $response['status'] = 'error';
                             $response['content'] = 'echec d\'enregistrement';
@@ -490,88 +538,6 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
                 } catch (Exception $ex) {
                     $response['status'] = 'warning';
                     $response['content'] = 'Exception : ' . $ex->getMessage();
-                    echo json_encode($response);
-                }
-            break;
-
-            case 'get_encadreur':
-                try {
-                    $result = $api->get_encadreur();
-                    $msg = false;
-                    foreach($result as $data) {
-                        $msg = true;
-                        if($data->id == $user_id){
-                            continue;
-                        }
-                        if ($data->id != $user_id){
-                            ?>
-                                <option value="<?=$data->id ?>"><?= $data->nom . " " . $data->prenom ?></option>
-                            <?php
-                        }
-                    }
-                    if(! $msg) {
-                        ?>
-                            <option value="">Chargement en cours...</option>
-                        <?php
-                    }
-                }
-                catch (Exception $ex) {
-                    // En cas d'exception, retourner un message d'avertissement avec le message de l'exception
-                    $response['status'] = 'warning';
-                    $response['content'] = 'Exception ' . $ex->getMessage();
-                }
-            break;
-
-            case 'save_collaborate':
-                header('Content-Type: application/json');
-                $response = [];
-
-                try {
-                    $encadreur = htmlspecialchars($_POST['encadreur']);
-                    $id_project = htmlspecialchars($_POST['id_project']);
-
-                    if ($projet->get_exist_encadreur_by_project($id_project, $encadreur)){
-                        $response['status'] = 'info';
-                        $response['content'] = 'Cet enseignant est déjà été ajouté dans ce projet';
-                        print json_encode($response);
-                        exit;
-                    }
-
-                    if (! empty($encadreur && $id_project)){
-                        if($projet->create_encadreur($id_project, $encadreur)) {
-
-                            $data_email = $project_file->get_send_email_encadreur_by_id( $encadreur);
-                            if (!empty($data_email)) {
-                                foreach ($data_email as $encadreur) {
-                                    $email = $encadreur->email;
-                                    $full_name = $encadreur->nom . ' ' . $encadreur->postnom . ' ' . $encadreur->prenom;
-
-                                    $subject = "Nouveau fichier ajouté au projet";
-                                    $body = "
-                                        Bonjour <strong>{$full_name}</strong>,<br><br>
-                                        Vous avez été ajouté comme encadreur dans un projet...<br>
-                                        Merci de consulter la plateforme pour plus de détails.<br><br>
-                                        Cordialement,<br>
-                                        UAC Collab
-                                    ";
-
-                                    Functions::send_mail($email, $full_name, $subject, $body);
-                                }
-                            }
-                            $response['status'] = 'success';
-                            $response['content'] = 'Vous avez ajouté un collaborateur de ce projet';
-                        } else {
-                            $response['status'] = 'error';
-                            $response['content'] = 'Erreur lors de création du collaborateur';
-                        }
-                    }else{
-                        $response['status'] = 'info';
-                        $response['content'] = 'Comptétez les champs obligatoires.';
-                    }
-                    echo json_encode($response);
-                } catch (Exception $ex) {
-                    $response['status'] = 'warning';
-                    $response['content'] = 'Exception: ' . $ex->getMessage();
                     echo json_encode($response);
                 }
             break;

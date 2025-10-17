@@ -1,30 +1,8 @@
 <?php
-    $page_title = 'UAC collab | Projets';
+    $page_title = 'UAC collab | Valider';
     require_once 'app/module/functions/functions.php';
     ob_start();
     session_start();
-
-    if (!isset($_SESSION['departement']['code']) && !isset($_SESSION['user']['id'])) {
-        header('location:./login');
-    }
-
-    $parts = [];
-    if (isset($_GET['url']) && !empty($_GET['url'])) {
-        $parts = explode('-', $_GET['url']);
-        // Maintenant tu peux accéder à $parts[1], $parts[2], etc.
-    }
-
-    $annee = '';
-    $promotion = '';
-    if(! empty($parts)){
-        // Récupération des deux derniers éléments
-        $annee = ! empty($parts[1]) ? $parts[1] : ''; // 1
-        $promotion = ! empty($parts[2]) ? $parts[2] : ''; // 1
-    }
-
-    $codDep = ! empty($_SESSION['departement']['code']) && isset($_SESSION['departement']['code'])
-    ? $_SESSION['departement']['code']
-    : '';
 ?>
 
 <title><?=$page_title ?></title>
