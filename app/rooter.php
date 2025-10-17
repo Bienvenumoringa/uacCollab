@@ -11,5 +11,8 @@
         'projects' => 'projects',
         'openProjects' => 'open-projects',
         'chat' => 'chat',
-        'login' => 'login'
+        'login' => 'login',
+        'affectation' => 'affectation',
+        'confirme' => 'confirme',
+        'valide' => 'valide',
     ];

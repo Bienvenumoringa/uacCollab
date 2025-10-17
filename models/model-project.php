@@ -93,6 +93,47 @@
             return $result;
         }
 
+        public function get_admin_project_by_id($id) {
+            $query = 'SELECT
+                collab_projet.id,
+                collab_projet.dates,
+                collab_projet.titre,
+                collab_projet.description,
+                collab_projet.inscription,
+                etudiant.Nom AS nom,
+                etudiant.PostNom AS postnom,
+                etudiant.Prenom  AS prenom,
+                promotion.NomPro AS promotion,
+                departement.NomDep AS departement,
+                departement.CodDep AS CodDep,
+                inscription.AnneeAcad AS AnneeAcad
+            FROM
+                collab_projet,
+                inscription,
+                etudiant,
+                promotion,
+                filiere,
+                departement
+
+            WHERE
+                collab_projet.inscription = inscription.idinscription AND
+                etudiant.MatriculeInscrit = inscription.matriculeinscrit AND
+                promotion.Codfil = filiere.Codfil AND
+                promotion.CodPro = inscription.CodPro AND
+                departement.CodDep = filiere.CodDep AND
+                collab_projet.id = ?';
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                $id
+            ]);
+
+            $result = [];
+            while($row = $stmt->fetch()) {
+                $result[] = $row;
+            }
+            return $result;
+        }
+
         // Get departement project dashborad page
         public function get_admin_project_recent($CodPro) {
             $query = 'SELECT
@@ -349,6 +390,7 @@
                 etudiant.Prenom AS prenom,
                 etudiant.Sexe AS genre,
                 etudiant.photo AS image,
+                etudiant.Email AS email,
                 inscription.idinscription AS id_inscription,
                 CONCAT(promotion.NomPro, ' ',  departement.NomDep ) AS promotion
             FROM
@@ -360,7 +402,7 @@
                 departement.CodDep = filiere.CodDep AND
                 filiere.Codfil = promotion.Codfil AND
                 collab_projet.id = ?";
-          
+
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $id
@@ -418,15 +460,16 @@
                 JOIN promotion p ON i.CodPro = p.CodPro
                 JOIN filiere f ON p.Codfil = f.Codfil
                 JOIN departement d ON f.CodDep = d.CodDep
-                WHERE cp.id NOT IN (
-                    SELECT projet FROM collab_projet_encadreur
-                )
-                AND d.CodDep = ? AND
-                i.AnneeAcad = ?
+                LEFT JOIN collab_projet_encadreur cpe ON cp.id = cpe.projet
+                WHERE (cpe.status = ? OR cpe.projet IS NULL)
+                AND d.CodDep = ?
+                AND i.AnneeAcad =  ?
+
             ';
 
             $stmt = $this->db->prepare($query);
             $stmt->execute([
+                0,
                 $CodDep,
                 $yar
             ]);
